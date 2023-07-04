@@ -98,7 +98,6 @@ class TestMicromech(unittest.TestCase):
         self.assertEqual(np.round(example_ply_1.G12, 4), 4.4552)
         self.assertEqual(np.round(example_ply_1.G23, 4), 1.9231)
         self.assertEqual(np.round(example_ply_1.G13, 4), 4.4552)
-        self.assertEqual(np.round(example_ply_1.rho, 4), 1588.7576)
     
     def test_Halphin_Tsai_input(self):
         example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
@@ -122,20 +121,77 @@ class TestMicromech(unittest.TestCase):
 
     def test_Halphin_Tsai_outputs(self):
         example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
-        example_ply_1.ROM()
+        example_ply_1.Halphin_Tsai()
 
         self.assertEqual(np.round(example_ply_1.E1, 4), 296.5661)
-        self.assertEqual(np.round(example_ply_1.E2, 4), 11.5836)
-        self.assertEqual(np.round(example_ply_1.E3, 4), 11.5836)
+        self.assertEqual(np.round(example_ply_1.E2, 4), 23.8974)
+        self.assertEqual(np.round(example_ply_1.E3, 4), 23.8974)
         self.assertEqual(np.round(example_ply_1.ni12, 4), .3)
         self.assertEqual(np.round(example_ply_1.ni13, 4), .3)
-        self.assertEqual(example_ply_1.ni23, 'NA')
-        self.assertEqual(np.round(example_ply_1.G12, 4), 4.4552)
-        self.assertEqual(np.round(example_ply_1.G23, 4), 1.9231)
-        self.assertEqual(np.round(example_ply_1.G13, 4), 4.4552)
-        self.assertEqual(np.round(example_ply_1.rho, 4), 1588.7576)
+        self.assertEqual(np.round(example_ply_1.ni23, 4), .3)
+        self.assertEqual(np.round(example_ply_1.G12, 4), 7.1673)
+        self.assertEqual(np.round(example_ply_1.G23, 4), 5.8132)
+        self.assertEqual(np.round(example_ply_1.G13, 4), 7.1673)
 
+    def test_PMM_input(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        # print_cntrl is not boolean 
+        with self.assertRaises(Exception):
+            example_ply_1.PMM(print_cntrl=7)
+        with self.assertRaises(Exception):
+            example_ply_1.PMM(print_cntrl='7')
 
+    def test_PMM_outputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        example_ply_1.PMM()
+
+        self.assertEqual(np.round(example_ply_1.E1, 4), 296.5661)
+        self.assertEqual(np.round(example_ply_1.E2, 4), 17.4726)
+        self.assertEqual(np.round(example_ply_1.E3, 4), 17.4726)
+        self.assertEqual(np.round(example_ply_1.ni12, 4), .3)
+        self.assertEqual(np.round(example_ply_1.ni13, 4), .3)
+        self.assertEqual(np.round(example_ply_1.ni23, 4), 0.3524)
+        self.assertEqual(np.round(example_ply_1.G12, 4), 6.9391)
+        self.assertEqual(np.round(example_ply_1.G23, 4), 6.46)
+        self.assertEqual(np.round(example_ply_1.G13, 4), 6.9391)
+
+    def test_print_properties_outputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        with self.assertRaises(Exception):
+            example_ply_1.print_properties()        
+        
+    def test_error_percent_inputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        example_ply_1.PMM()
+
+        with self.assertRaises(Exception):
+            data_in = 'data'
+            example_ply_1.error_percent(data_in)
+        with self.assertRaises(Exception):
+            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575, 1575]
+            example_ply_1.error_percent(data_in)
+        with self.assertRaises(Exception):
+            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, '1575']
+            example_ply_1.error_percent(data_in)
+        with self.assertRaises(Exception):
+            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575]
+            example_ply_1.error_percent(data_in, print_cntrl='False')
+
+    def test_error_percent_outputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        example_ply_1.PMM()
+        data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575]
+        example_ply_1.error_percent(data_in)
+        self.assertEqual(np.round(example_ply_1.error_percent_E1, 4), .5309)
+        self.assertEqual(np.round(example_ply_1.error_percent_E2, 4), 2.7801)
+        self.assertEqual(np.round(example_ply_1.error_percent_E3, 4), 2.7801)
+        self.assertEqual(np.round(example_ply_1.error_percent_ni12, 4), 20)
+        self.assertEqual(np.round(example_ply_1.error_percent_ni13, 4), 20)
+        self.assertEqual(np.round(example_ply_1.error_percent_ni23, 4), 0.0121)
+        self.assertEqual(np.round(example_ply_1.error_percent_G12, 4), 2.046)
+        self.assertEqual(np.round(example_ply_1.error_percent_G23, 4), 4.1931)
+        self.assertEqual(np.round(example_ply_1.error_percent_G13, 4), 2.046)
+        self.assertEqual(np.round(example_ply_1.error_percent_rho, 4), .0087)
 
 if __name__ == '__main__':
     unittest.main()

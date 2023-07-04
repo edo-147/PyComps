@@ -304,7 +304,8 @@ Following the Periodic Microstructure Model method, the method computes ply equi
     '''
 
         if isinstance(print_cntrl, bool) is False:
-            raise Exception('Error. The variable "print_cntrl" must be boolean.')        
+            raise Exception('Error. The variable "print_cntrl" must be boolean.')     
+           
         mu_0 = self.matrix_G
         mu_1 = self.fiber_G
         ni_0 = self.matrix_ni
@@ -355,40 +356,153 @@ Following the Periodic Microstructure Model method, the method computes ply equi
         if print_cntrl is True: 
             self.print_properties()
 
-    def print_properties(self) :
-        print('E1 = ', str(np.round(self.E1, 4)), ' GPa')
-        print('E2 = ', str(np.round(self.E2, 4)), ' GPa')
-        print('E3 = ', str(np.round(self.E3, 4)), ' GPa')
-        print('ni12 = ', str(np.round(self.ni12, 4)))
-        print('ni13 = ', str(np.round(self.ni13, 4)))
-        if self.ni23 != 'NA':
-            print('ni23 = ', str(np.round(self.ni23, 4)))
-        else: 
-            print('ni23 = NA')
-        print('G12 = ', str(np.round(self.G12, 4)), ' GPa')
-        print('G23 = ', str(np.round(self.G23, 4)), ' GPa')
-        print('G13 = ', str(np.round(self.G13, 4)), ' GPa')
+    def print_properties(self):
+        '''
+# DESCRIPTION:
+Print ply properties 
+
+# INPUTS:
+    Required
+    - None
+    Optional   
+    
+# OUTPUTS: 
+    - None
+
+# Example:
+    import PyComp as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
+
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
+    gpsqm = 160
+
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt', grams_per_square_meter=gpsqm, compute_cured_thickness=True)
+    example_ply_1.PMM()
+    example_ply_1.print_properties()
+
+    '''
+        check_ply_properties = True
+        try:
+            print('E1 = ', str(np.round(self.E1, 4)), ' GPa')
+            print('E2 = ', str(np.round(self.E2, 4)), ' GPa')
+            print('E3 = ', str(np.round(self.E3, 4)), ' GPa')
+            print('ni12 = ', str(np.round(self.ni12, 4)))
+            print('ni13 = ', str(np.round(self.ni13, 4)))
+            if self.ni23 != 'NA':
+                print('ni23 = ', str(np.round(self.ni23, 4)))
+            else: 
+                print('ni23 = NA')
+            print('G12 = ', str(np.round(self.G12, 4)), ' GPa')
+            print('G23 = ', str(np.round(self.G23, 4)), ' GPa')
+            print('G13 = ', str(np.round(self.G13, 4)), ' GPa')
+        except AttributeError:
+            check_ply_properties = False
+        if check_ply_properties is False:    
+            raise Exception('Error. E1 is not defined. Use one of the available method to compute the ply properties before printing.')
         print('rho = ', str(np.round(self.rho, 4)), ' kg/m^3')
         print('Ply thickness = ', str(np.round(self.cured_thickness, 4)), ' mm')
 
-    def error_percent(self, data: list[float] or np.ndarray[float]):
+    def error_percent(self, data: list[float or int] or np.ndarray[float or int], print_cntrl:bool= False):
+        '''
+# DESCRIPTION:
+Compute the error percent between the computed ply properties and those from an external model
+# INPUTS:
+    Required
+    - None
+    Optional   
+    
+# OUTPUTS: 
+    - None
+
+# Example:
+    import PyComp as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
+
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
+    gpsqm = 160
+
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt', grams_per_square_meter=gpsqm, compute_cured_thickness=True)
+    example_ply_1.PMM()
+    data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575]
+    example_ply_1.error_percent(data_in, print_cntrl=True)
+
+    '''
+
         print('\033[36m', 'Note: \n')
         print('Elastic properties units are in MPa')
         print('Density units are in kg/m^3', '\033[37m')
-        self.error_E1 = np.abs((data[0] - self.E1)) / data[0]
-        self.error_E2 = np.abs((data[1] - self.E2)) / data[1]
-        self.error_E3 = np.abs((data[2] - self.E3)) / data[2]
-        self.error_G12 = np.abs((data[3] - self.G12)) / data[3]
-        self.error_G23 = np.abs((data[4] - self.G23)) / data[4]
-        self.error_G13 = np.abs((data[5] - self.G13)) / data[5]
-        self.error_ni12 = np.abs((data[6] - self.ni12)) / data[6]
-        self.error_ni13 = np.abs((data[7] - self.ni13)) / data[7]
+
+        if isinstance(data, list) is False and isinstance(data, np.ndarray) is False:
+            raise Exception('Input data must be either a list or a numpy array.')
+        if len(data) != 10: 
+            raise Exception('Input data lenght must be 10')
+        for i in data:
+            if isinstance(i, float) is False and isinstance(i, int) is False:
+                raise Exception('Input data values must be either float or integer.')
+        if isinstance(print_cntrl, bool) is False:
+            raise Exception('Error. The variable "print_cntrl" must be boolean.')     
+        
+        check_ply_properties = True
+        try:
+            self.E1 
+        except AttributeError:
+            check_ply_properties = False
+        if check_ply_properties is False:    
+            raise Exception('Error. E1 is not defined. Use one of the available method to compute the ply properties before computing the error.')
+
+        self.error_percent_E1 = np.abs((data[0] - self.E1)) / data[0] * 100
+        self.error_percent_E2 = np.abs((data[1] - self.E2)) / data[1] * 100
+        self.error_percent_E3 = np.abs((data[2] - self.E3)) / data[2] * 100
+        self.error_percent_ni12 = np.abs((data[3] - self.ni12)) / data[3] * 100
+        self.error_percent_ni13 = np.abs((data[4] - self.ni13)) / data[4] * 100
+        if self.ni23 == 'NA':
+            self.error_percent_ni23 = 'NA'
+        else:
+            self.error_percent_ni23 = np.abs((data[5] - self.ni23)) /data[8]
+        self.error_percent_G12 = np.abs((data[6] - self.G12)) / data[6] * 100
+        self.error_percent_G23 = np.abs((data[7] - self.G23)) / data[7] * 100
+        self.error_percent_G13 = np.abs((data[8] - self.G13)) / data[8] * 100
+        self.error_percent_rho = np.abs((data[9] - self.rho)) / data[9]
+
+
+        self.error_E1 = self.error_percent_E1 / 100 
+        self.error_E2 = self.error_percent_E2 / 100 
+        self.error_E3 = self.error_percent_E3 / 100 
+        self.error_ni12 = self.error_percent_ni12  / 100
+        self.error_ni13 = self.error_percent_ni13  / 100
         if self.ni23 == 'NA':
             self.error_ni23 = 'NA'
-        self.error_ni23 = np.abs((data[8] - self.ni23))/data[8]
-        self.error_rho = np.abs((data[9] - self.rho)) / data[9]
+        else: 
+            self.error_ni23 = self.error_percent_ni23 / 100
+        self.error_G12 = self.error_percent_G12 / 100
+        self.error_G23 = self.error_percent_G23 / 100
+        self.error_G13 = self.error_percent_G13 / 100
+        self.error_rho = self.error_percent_rho / 100
 
         self.errors = [self.error_E1, self.error_E2, self.error_E3, self.error_G12, \
                        self.error_G23, self.error_G13, self.error_ni12, self.error_ni13, self.error_ni23, self.error_rho]
+        self.errors_percent = [self.error_percent_E1, self.error_percent_E2, self.error_percent_E3, \
+                               self.error_percent_G12, self.error_percent_G23, self.error_percent_G13, \
+                                self.error_percent_ni12, self.error_percent_ni13]
+        if print_cntrl is True:
+            print('error E1 % = ', str(np.round(self.error_percent_E1, 4)))
+            print('error E2 % = ', str(np.round(self.error_percent_E2, 4)))
+            print('error E3 % = ', str(np.round(self.error_percent_E3, 4)))
+            print('error ni12 % = ', str(np.round(self.error_percent_ni12, 4)))    
+            print('error ni13 % = ', str(np.round(self.error_percent_ni13, 4)))
+            if self.ni23 != 'NA':
+                print('error ni23 % = ', str(np.round(self.error_percent_ni23, 4)))
+            else: 
+                print('error ni23 %  = NA')
+            print('error G12 % = ', str(np.round(self.error_percent_G12, 4)))
+            print('error G23 % = ', str(np.round(self.error_percent_G23, 4)))
+            print('error G13 % = ', str(np.round(self.error_percent_G13, 4)))
+            print('error rho % = ', str(np.round(self.error_percent_rho, 4)))
 
-        
+
