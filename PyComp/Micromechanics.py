@@ -164,8 +164,8 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
     matrix_name = 'Ex-1515'
     gpsqm = 160
 
-    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
-
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac=fiber_mass_frac, grams_per_square_meter=gpsqm, compute_cured_thickness=True, mass_or_vol_frac='wgt')
+    example_ply_1.ROM(print_cntrl=True)
     ''' 
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" must be boolean.')
@@ -180,12 +180,11 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
 
         self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
         self.ni13 = self.ni12
-        #self.ni23 = self.E2 / (self.G23 * 2) - 1
         self.ni23 = 'NA'
         self.ni21 = self.ni12 * self.E2 / self.E1
         self.ni31 = self.ni21
         self.ni32 = self.ni23
-        print('\033[36m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
+        print('\033[35m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
         print('\033[37m',' ')
 
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
@@ -269,7 +268,7 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
                            self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
         
-        print('\033[36m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
+        print('\033[35m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
         print('\033[37m',' ')
 
         if print_cntrl is True: 
@@ -434,7 +433,7 @@ Compute the error percent between the computed ply properties and those from an 
 
     '''
 
-        print('\033[36m', 'Note: \n')
+        print('\033[35m', 'Note: \n')
         print('Elastic properties units are in MPa')
         print('Density units are in kg/m^3', '\033[37m')
 
