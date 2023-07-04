@@ -43,16 +43,16 @@ Initialization of the class "ply" creating a composite layer from its constituen
     -   Class object with all the mechanical properties (E_i, n_ij, G_ij with i,j = 1, 2, 3 with i != j), and the other properties. In such a way that "output_name".properties returns the specific ply property
 
 # Example:
-    import PyComp_local as comp
+    import PyComp as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
 
-    matrix_props = [513, .3, 1910]
-    matrix_name = 'M55J/Toray'
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
     gpsqm = 160
 
-    ExamplePly1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
 
     ''' 
         # Checks on the inputs types
@@ -144,7 +144,59 @@ Initialization of the class "ply" creating a composite layer from its constituen
     def ROM(self, print_cntrl:bool=False) :
         '''
 # DESCRIPTION:
-The class "ply" is used to generate a ply starting from its properties 
+ROM method computes ply equivalent properties following the Rule-Of-Mixtures approach
+
+# INPUTS:
+
+    Required
+    - None
+    Optional   
+    - print_cntrl: wheather to print or not the computed ply properties
+# OUTPUTS: 
+    - None
+# Example:
+    import PyComp as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
+
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
+    gpsqm = 160
+
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
+
+    ''' 
+        if isinstance(print_cntrl, bool) is False:
+            raise Exception('Error. The variable "print_cntrl" must be boolean.')
+        
+        self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
+        self.E2 = self.fiber_E * self.matrix_E / (self.matrix_vol_frac * self.fiber_E + self.fiber_vol_frac * self.matrix_E)
+        self.E3 = self.E2
+
+        self.G12 = self.fiber_G * self.matrix_G / (self.matrix_vol_frac * self.fiber_G + self.fiber_vol_frac * self.matrix_G)
+        self.G13 = self.G12
+        self.G23 = self.matrix_G
+
+        self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
+        self.ni13 = self.ni12
+        #self.ni23 = self.E2 / (self.G23 * 2) - 1
+        self.ni23 = 'NA'
+        self.ni21 = self.ni12 * self.E2 / self.E1
+        self.ni31 = self.ni21
+        self.ni32 = self.ni23
+        print('\033[33m','WARNING:The value "ni23" and "G23" were set to the matrix value. I a more precise value is needed use another method.')
+        print('\033[37m',' ')
+
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+
+        if print_cntrl is True: 
+            self.print_properties()
+ 
+    def Halphin_Tsai(self, csi_E: float=2, csi_G: str='def', print_cntrl:bool=False) :
+        '''
+# DESCRIPTION:
+Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsai approach
 
 # INPUTS:
 
@@ -169,124 +221,49 @@ The class "ply" is used to generate a ply starting from its properties
     ''' 
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" must be boolean.')
-        
+                   
+        if isinstance(csi_E, float) is False and isinstance(csi_E, int) is False:
+            raise ValueError('"csi_E" must either be a float or an integer')
+        if csi_E < 0 : 
+            raise ValueError('"csi_E" must be > 0.')
+        if isinstance(csi_G, float) is False and isinstance(csi_G, int) is False and csi_G != 'def':
+            raise ValueError('"csi_G" must either be a float or an integer')
+        if csi_G == 'def' :
+            pass 
+        elif csi_G < 0 : 
+            raise ValueError('"csi_G" must be > 0.')
+
         self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
-        self.E2 = self.fiber_E * self.matrix_E / (self.matrix_vol_frac * self.fiber_E + self.fiber_vol_frac * self.matrix_E)
-        self.E3 = self.E2
+        self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac
+        
 
-        self.G12 = self.fiber_G * self.matrix_G / (self.matrix_vol_frac * self.fiber_G + self.fiber_vol_frac * self.matrix_G)
+        eta_E = (self.fiber_E / self.matrix_E - 1) / (self.fiber_E / self.matrix_E + csi_E)
+        self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
+
+        if csi_G == 'def' :
+            csi_G = 1 + 40 * self.fiber_vol_frac ** 10
+        elif csi_G == 1 :
+            pass
+        
+        eta_G = (self.fiber_G / self.matrix_G - 1) / (self.fiber_G / self.matrix_G + csi_G)
+        self.G12 = self.matrix_G * (1 + csi_G * eta_G * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
+        
+        #SSP for G23
+        eta_23 = (3 - 4 * self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
+        self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
+        
+
         self.G13 = self.G12
-        self.G23 = self.matrix_G
-
-        self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
+        self.E3 = self.E2
         self.ni13 = self.ni12
-        self.ni23 = self.E2 / (self.G23 * 2) - 1
+        self.ni23= self.ni12
         self.ni21 = self.ni12 * self.E2 / self.E1
         self.ni31 = self.ni21
         self.ni32 = self.ni23
-        print('\033[33m','WARNING:The value "ni23" and "G23" were set to the matrix value. I a more precise value is needed use another method.')
-        print('\033[37m',' ')
-
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
-
-        if print_cntrl is True: 
-            self.print_properties()
-    def SSP_calc(self, csi_E: float=2) :
-
-            # Halphin_Tsai method used, SSP too complicated 
-            self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
-            self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
-
-            eta_E = (self.fiber_E / self.matrix_E - 1) / (self.fiber_E / self.matrix_E + csi_E)
-            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
-            self.E3 = self.E2
-
-            eta_ssp_23 = (3 - self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
-            self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_ssp_23 * (1 - self.fiber_vol_frac))   
-            eta_s = .5 * (1 + self.matrix_G / self.matrix_E)
-            self.G12 = (self.fiber_vol_frac + eta_s * (1 - self.fiber_vol_frac)) / (eta_s * (1 - self.fiber_vol_frac) + self.fiber_vol_frac * self.matrix_G / self.fiber_G)
-            self.G13 = self.G12
-
-            self.ni13 = self.ni12
-            self.ni23 = self.E2 / (self.G23 * 2) - 1
-            self.ni21 = self.ni12 * self.E2 / self.E1
-            self.ni31 = self.ni21
-            self.ni32 = self.ni23
-
-            # E1 = self.E1
-            # E2 = self.E2
-            # E3 = self.E3
-            # ni12 = self.ni12
-            # ni13 = self.ni13
-            # ni21 = self.ni21
-            # ni23 = self.ni23
-            # ni32 = self.ni32
-            # ni31 = self.ni31
-            # G12 = self.G12
-            # G23 = self.G23
-            # G13 = self.G13
-
-            # return(E1, E2, E3, ni12, ni13, ni21, ni23, ni31, ni32, G12, G23, G13)
-            self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
-
-    def Halphin_Tsai_calc(self, csi_E: float=2, csi_G: str='def') :
-           
-            if isinstance(csi_E, float) is False and isinstance(csi_E, int) is False:
-                raise ValueError('"csi_E" must either be a float or an integer')
-            if csi_E < 0 : 
-                raise ValueError('"csi_E" must be > 0.')
-            if isinstance(csi_G, float) is False and isinstance(csi_G, int) is False and csi_G != 'def':
-                raise ValueError('"csi_G" must either be a float or an integer')
-            if csi_G == 'def' :
-                pass 
-            elif csi_G < 0 : 
-                raise ValueError('"csi_G" must be > 0.')
-            # if isinstance(csi_ni23, float) is False and isinstance(csi_ni23, int) is False:
-            #     raise ValueError('"csi_ni23" must either be a float or an integer')
-            # if csi_ni23 < 0 : 
-            #     raise ValueError('"csi_ni23" must be > 0.')
-
-            # Computed with ROM 
-            # if csi_E == 'def' :
-            #     csi_E = 1 + 40 * self.fiber_vol_frac ** 40
-            # elif csi_E == 1 :
-            #     pass
-            self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
-            self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac
+        
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
             
-
-            eta_E = (self.fiber_E / self.matrix_E - 1) / (self.fiber_E / self.matrix_E + csi_E)
-            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
-
-            if csi_G == 'def' :
-                csi_G = 1 + 40 * self.fiber_vol_frac ** 10
-            elif csi_G == 1 :
-                pass
-            
-            eta_G = (self.fiber_G / self.matrix_G - 1) / (self.fiber_G / self.matrix_G + csi_G)
-            self.G12 = self.matrix_G * (1 + csi_G * eta_G * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
-            
-            #SSP for G23
-            eta_23 = (3 - 4 * self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
-            self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
-            
-            #calcolo della ni23
-            # eta_ni23=(self.fiber_ni/self.matrix_ni - 1)/(self.fiber_ni/self.matrix_ni +csi_ni23)
-            # self.ni23=self.matrix_ni * (1 + csi_ni23 * eta_ni23 * self.fiber_vol_frac)/(1- eta_ni23 * self.fiber_vol_frac)
-
-
-            self.G13 = self.G12
-            self.E3 = self.E2
-            self.ni13 = self.ni12
-            # self.ni23 = self.E2 / (self.G23 * 2) - 1 
-            self.ni23= self.ni12
-            self.ni21 = self.ni12 * self.E2 / self.E1
-            self.ni31 = self.ni21
-            self.ni32 = self.ni23
-            
-            self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
-            
-    def PMM(self) : 
+    def PMM(self, print_cntrl:bool=False) : 
         
             mu_0 = self.matrix_G
             mu_1 = self.fiber_G
@@ -294,9 +271,7 @@ The class "ply" is used to generate a ply starting from its properties
             ni_1 = self.fiber_ni
             f = self.fiber_vol_frac
 
-            # lambda_0 = (self.matrix_ni * self.matrix_E) / (1 + self.matrix_ni) * (1 - self.matrix_ni * 2)
             lambda_0 = (self.matrix_E * self.matrix_ni) / ((1 + self.matrix_ni) * (1 - self.matrix_ni * 2))
-            # lambda_1 = self.fiber_ni * self.fiber_E / (1 + self.fiber_ni) * (1 - self.fiber_ni * 2)
             
             a = mu_1 - mu_0 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_1
             b = - mu_0 * ni_0 + mu_1 * ni_1 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1 
@@ -338,17 +313,20 @@ The class "ply" is used to generate a ply starting from its properties
             self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
 
     def print_properties(self) :
-        print('E1 = ', str(self.E1), ' GPa')
-        print('E2 = ', str(self.E2), ' GPa')
-        print('E3 = ', str(self.E3), ' GPa')
-        print('ni12 = ', str(self.ni12))
-        print('ni13 = ', str(self.ni13))
-        print('ni23 = ', str(self.ni23))
-        print('G12 = ', str(self.G12), ' GPa')
-        print('G23 = ', str(self.G23), ' GPa')
-        print('G13 = ', str(self.G13), ' GPa')
-        print('rho = ', str(self.rho), ' kg/m^3')
-        print('Ply thickness = ', str(self.cured_thickness), ' mm')
+        print('E1 = ', str(np.round(self.E1, 4)), ' GPa')
+        print('E2 = ', str(np.round(self.E2, 4)), ' GPa')
+        print('E3 = ', str(np.round(self.E3, 4)), ' GPa')
+        print('ni12 = ', str(np.round(self.ni12, 4)))
+        print('ni13 = ', str(np.round(self.ni13, 4)))
+        if self.ni23 != 'NA':
+            print('ni23 = ', str(np.round(self.ni23, 4)))
+        else: 
+            print('ni23 = NA')
+        print('G12 = ', str(np.round(self.G12, 4)), ' GPa')
+        print('G23 = ', str(np.round(self.G23, 4)), ' GPa')
+        print('G13 = ', str(np.round(self.G13, 4)), ' GPa')
+        print('rho = ', str(np.round(self.rho, 4)), ' kg/m^3')
+        print('Ply thickness = ', str(np.round(self.cured_thickness, 4)), ' mm')
 
     def error_percent(self, data: list[float] or np.ndarray[float]):
         self.errorE1 = np.abs((data[0] - self.E1*(10**3)))/data[0]
