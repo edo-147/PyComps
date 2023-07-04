@@ -70,10 +70,71 @@ class TestMicromech(unittest.TestCase):
         example_ply_1.cured_thickness = np.round(example_ply_1.cured_thickness, 5)
         example_ply_1.fiber_G = np.round(example_ply_1.fiber_G, 3)
         example_ply_1.matrix_G = np.round(example_ply_1.matrix_G, 3)
+        example_ply_1.rho = np.round(example_ply_1.rho, 3)
 
         self.assertEqual(example_ply_1.cured_thickness, 0.14595)
         self.assertEqual(example_ply_1.fiber_G, 197.308)
         self.assertEqual(example_ply_1.matrix_G, 1.923)
+        self.assertEqual(example_ply_1.rho, 1588.758)
+
+    def test_ROM_input(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        # print_cntrl is not boolean 
+        with self.assertRaises(Exception):
+            example_ply_1.ROM(print_cntrl=7)
+        with self.assertRaises(Exception):
+            example_ply_1.ROM(print_cntrl='7')
+
+    def test_ROM_outputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        example_ply_1.ROM()
+
+        self.assertEqual(np.round(example_ply_1.E1, 4), 296.5661)
+        self.assertEqual(np.round(example_ply_1.E2, 4), 11.5836)
+        self.assertEqual(np.round(example_ply_1.E3, 4), 11.5836)
+        self.assertEqual(np.round(example_ply_1.ni12, 4), .3)
+        self.assertEqual(np.round(example_ply_1.ni13, 4), .3)
+        self.assertEqual(example_ply_1.ni23, 'NA')
+        self.assertEqual(np.round(example_ply_1.G12, 4), 4.4552)
+        self.assertEqual(np.round(example_ply_1.G23, 4), 1.9231)
+        self.assertEqual(np.round(example_ply_1.G13, 4), 4.4552)
+        self.assertEqual(np.round(example_ply_1.rho, 4), 1588.7576)
+    
+    def test_Halphin_Tsai_input(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        # print_cntrl is not boolean 
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(print_cntrl=7)
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(print_cntrl='7')
+        # csi_E is neither float nor integer
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(csi_E='7')
+        # csi_G is neither float nor integer nor 'def'
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(csi_G='7')
+        # csi_E is negative
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(csi_E=-7)
+        # csi_G is negative
+        with self.assertRaises(Exception):
+            example_ply_1.Halphin_Tsai(csi_G=-7)
+
+    def test_Halphin_Tsai_outputs(self):
+        example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
+        example_ply_1.ROM()
+
+        self.assertEqual(np.round(example_ply_1.E1, 4), 296.5661)
+        self.assertEqual(np.round(example_ply_1.E2, 4), 11.5836)
+        self.assertEqual(np.round(example_ply_1.E3, 4), 11.5836)
+        self.assertEqual(np.round(example_ply_1.ni12, 4), .3)
+        self.assertEqual(np.round(example_ply_1.ni13, 4), .3)
+        self.assertEqual(example_ply_1.ni23, 'NA')
+        self.assertEqual(np.round(example_ply_1.G12, 4), 4.4552)
+        self.assertEqual(np.round(example_ply_1.G23, 4), 1.9231)
+        self.assertEqual(np.round(example_ply_1.G13, 4), 4.4552)
+        self.assertEqual(np.round(example_ply_1.rho, 4), 1588.7576)
+
 
 
 if __name__ == '__main__':

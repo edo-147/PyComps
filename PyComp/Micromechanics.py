@@ -185,10 +185,11 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
         self.ni21 = self.ni12 * self.E2 / self.E1
         self.ni31 = self.ni21
         self.ni32 = self.ni23
-        print('\033[33m','WARNING:The value "ni23" and "G23" were set to the matrix value. I a more precise value is needed use another method.')
+        print('\033[36m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
         print('\033[37m',' ')
 
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
+                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
 
         if print_cntrl is True: 
             self.print_properties()
@@ -199,25 +200,28 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
 Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsai approach
 
 # INPUTS:
-
     Required
     - None
     Optional   
+    - csi_E: value of csi used for the computation of the elastic modulus. Default is 2.
+    - csi_G: value of csi used for the computation of the shear modulus. Default is 'def' which means: (1 + 40 * fiber_vol_frac ** 10).
     - print_cntrl: wheather to print or not the computed ply properties
+
 # OUTPUTS: 
     - None
+
 # Example:
-    import PyComp_local as comp
+    import PyComp as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
 
-    matrix_props = [513, .3, 1910]
-    matrix_name = 'M55J/Toray'
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
     gpsqm = 160
 
-    ExamplePly1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
-
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt', grams_per_square_meter=gpsqm, compute_cured_thickness=True)
+    example_ply_1.Halphin_Tsai(print_cntrl=True)
     ''' 
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" must be boolean.')
@@ -250,7 +254,8 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         
         #SSP for G23
         eta_23 = (3 - 4 * self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
-        self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
+        self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) \
+              / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
         
 
         self.G13 = self.G12
@@ -261,56 +266,94 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.ni31 = self.ni21
         self.ni32 = self.ni23
         
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
-            
-    def PMM(self, print_cntrl:bool=False) : 
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
+                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
         
-            mu_0 = self.matrix_G
-            mu_1 = self.fiber_G
-            ni_0 = self.matrix_ni
-            ni_1 = self.fiber_ni
-            f = self.fiber_vol_frac
+        print('\033[36m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
+        print('\033[37m',' ')
 
-            lambda_0 = (self.matrix_E * self.matrix_ni) / ((1 + self.matrix_ni) * (1 - self.matrix_ni * 2))
-            
-            a = mu_1 - mu_0 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_1
-            b = - mu_0 * ni_0 + mu_1 * ni_1 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1 
-            c = (mu_0 - mu_1) * (mu_1 - mu_0 + mu_1 * ni_1 - mu_0 * ni_0 + 2 * mu_0 * ni_1 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1)
-            g = (2 - 2 * ni_0)
-            
-            S3 = 0.49247 - (0.47603 * f) - 0.02748 * (f ** 2)
-            S6 = 0.36844 - (0.14944 * f) - 0.27152 * (f ** 2)
-            S7 = 0.12346 - (0.32035 * f) + 0.23517 * (f ** 2)
+        if print_cntrl is True: 
+            self.print_properties()
 
-            D = (a * (S3 ** 2)) / (2 * c * mu_0**2) - (a * S6 * S3 )/ (g * c * (mu_0**2)) + (a  * ((S6 ** 2) - (S7 ** 2)))/ (2 * (mu_0 ** 2) * (g ** 2) * c) + (S3 * ((b ** 2) - (a ** 2))) / (2 * mu_0 * (c ** 2) ) + (S6 *( (a ** 2) - (b ** 2)) + S7 * ( a * b + (b**2))) / (2* mu_0 * g * (c ** 2)) + ((a ** 3) - 2 * (b ** 3) - 3 * a * (b ** 2)) / (8 * (c ** 3)) 
-            C11 = lambda_0 + 2 * mu_0 - f * ((S3 ** 2) / (mu_0 ** 2) - (2 * S6 * S3) / ((mu_0 ** 2) * g) - (a * S3) / (mu_0 * c) + ((S6 ** 2) - (S7 ** 2)) / ((mu_0 ** 2) * (g ** 2)) + ( a* S6 + b * S7) / (mu_0 * g * c) + ((a ** 2) - (b ** 2)) / (4 * (c **2))) / D
-            C12 = lambda_0 + f * b * (S3 / (2 * c * mu_0) - (S6 - S7) / (2 * c * mu_0 * g) - (a + b) / (4 * (c ** 2))) / D
-            C23 = lambda_0 + f * ( (a * S7) / (2 * mu_0 * g * c) - (b * a + (b ** 2)) / (4 * (c ** 2))) / D
-            C22 = lambda_0 + 2 * mu_0 - f * (- (a * S3) / (2 * mu_0 * c) + (a * S6) / (2 * mu_0 * g * c) + ((a ** 2) - (b ** 2)) / (4 * (c ** 2))) / D
-            C44 = mu_0 - f * (- (2 * S3) / mu_0 + ((mu_0 - mu_1) ** - 1) + 4 * S7 / (mu_0 * (2 - 2 * ni_0)))**-1
-            C66 = mu_0 - f * (- S3 / mu_0 + ((mu_0 - mu_1) ** -1)) ** -1
+    def PMM(self, print_cntrl:bool=False) : 
+        '''
+# DESCRIPTION:
+Following the Periodic Microstructure Model method, the method computes ply equivalent properties.
 
-            C55 = C66
-            C13 = C12 
-            C31 = C13 
-            C21 = C12
-            C32 = C23
-            C33 = C22 
-            C = np.array([[C11, C12, C13, 0, 0, 0], [C21, C22, C23, 0, 0, 0], [C31, C32, C33, 0, 0, 0], [0, 0, 0, C44, 0, 0], [0, 0, 0, 0, C55, 0 ], [0, 0, 0, 0, 0, C66]]) 
-            self.C = C
+# INPUTS:
+    Required
+    - None
+    Optional   
+    - print_cntrl: wheather to print or not the computed ply properties
 
-            self.E1 = C11 - ((2 * (C12**2))/(C22 + C23))
-            self.E2 = ((2 * C11 * C22 + 2 * C11 * C23 - 4 * (C12**2)) * (C22 - C23 + 2 * C44))/(3 * C11 * C22 + C11 * C23 + 2 * C11 * C44 - 4 * (C12**2))
-            self.E3 = self.E2
-            self.ni12 = (C12)/(C22 + C23)
-            self.ni13 = self.ni12
-            self.ni23 = (C11 * C22 + 3 * C11 * C23 - 2 * C11 * C44 - 4 * (C12**2))/(3 * C11 * C22 + C11 * C23 + 2 * C11 * C44 - 4 * (C12**2)) 
-            self.G12 = C66
-            self.G13 = self.G12
-            self.G23 = (C22/4) - (C23/4) + (C44/2)
+# OUTPUTS: 
+    - None
+
+# Example:
+    import PyComp as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
+
+    matrix_props = [5, .3, 1156]
+    matrix_name = 'Ex-1515'
+    gpsqm = 160
+
+    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt', grams_per_square_meter=gpsqm, compute_cured_thickness=True)
+    example_ply_1.PMM(print_cntrl=True)
+    '''
+
+        if isinstance(print_cntrl, bool) is False:
+            raise Exception('Error. The variable "print_cntrl" must be boolean.')        
+        mu_0 = self.matrix_G
+        mu_1 = self.fiber_G
+        ni_0 = self.matrix_ni
+        ni_1 = self.fiber_ni
+        f = self.fiber_vol_frac
+
+        lambda_0 = (self.matrix_E * self.matrix_ni) / ((1 + self.matrix_ni) * (1 - self.matrix_ni * 2))
+        
+        a = mu_1 - mu_0 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_1
+        b = - mu_0 * ni_0 + mu_1 * ni_1 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1 
+        c = (mu_0 - mu_1) * (mu_1 - mu_0 + mu_1 * ni_1 - mu_0 * ni_0 + 2 * mu_0 * ni_1 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1)
+        g = (2 - 2 * ni_0)
+        
+        S3 = 0.49247 - (0.47603 * f) - 0.02748 * (f ** 2)
+        S6 = 0.36844 - (0.14944 * f) - 0.27152 * (f ** 2)
+        S7 = 0.12346 - (0.32035 * f) + 0.23517 * (f ** 2)
+
+        D = (a * (S3 ** 2)) / (2 * c * mu_0**2) - (a * S6 * S3 )/ (g * c * (mu_0**2)) + (a  * ((S6 ** 2) - (S7 ** 2)))/ (2 * (mu_0 ** 2) * (g ** 2) * c) + (S3 * ((b ** 2) - (a ** 2))) / (2 * mu_0 * (c ** 2) ) + (S6 *( (a ** 2) - (b ** 2)) + S7 * ( a * b + (b**2))) / (2* mu_0 * g * (c ** 2)) + ((a ** 3) - 2 * (b ** 3) - 3 * a * (b ** 2)) / (8 * (c ** 3)) 
+        C11 = lambda_0 + 2 * mu_0 - f * ((S3 ** 2) / (mu_0 ** 2) - (2 * S6 * S3) / ((mu_0 ** 2) * g) - (a * S3) / (mu_0 * c) + ((S6 ** 2) - (S7 ** 2)) / ((mu_0 ** 2) * (g ** 2)) + ( a* S6 + b * S7) / (mu_0 * g * c) + ((a ** 2) - (b ** 2)) / (4 * (c **2))) / D
+        C12 = lambda_0 + f * b * (S3 / (2 * c * mu_0) - (S6 - S7) / (2 * c * mu_0 * g) - (a + b) / (4 * (c ** 2))) / D
+        C23 = lambda_0 + f * ( (a * S7) / (2 * mu_0 * g * c) - (b * a + (b ** 2)) / (4 * (c ** 2))) / D
+        C22 = lambda_0 + 2 * mu_0 - f * (- (a * S3) / (2 * mu_0 * c) + (a * S6) / (2 * mu_0 * g * c) + ((a ** 2) - (b ** 2)) / (4 * (c ** 2))) / D
+        C44 = mu_0 - f * (- (2 * S3) / mu_0 + ((mu_0 - mu_1) ** - 1) + 4 * S7 / (mu_0 * (2 - 2 * ni_0)))**-1
+        C66 = mu_0 - f * (- S3 / mu_0 + ((mu_0 - mu_1) ** -1)) ** -1
+
+        C55 = C66
+        C13 = C12 
+        C31 = C13 
+        C21 = C12
+        C32 = C23
+        C33 = C22 
+        C = np.array([[C11, C12, C13, 0, 0, 0], [C21, C22, C23, 0, 0, 0], [C31, C32, C33, 0, 0, 0], [0, 0, 0, C44, 0, 0], [0, 0, 0, 0, C55, 0 ], [0, 0, 0, 0, 0, C66]]) 
+        self.C = C
+
+        self.E1 = C11 - ((2 * (C12**2))/(C22 + C23))
+        self.E2 = ((2 * C11 * C22 + 2 * C11 * C23 - 4 * (C12**2)) * (C22 - C23 + 2 * C44))/(3 * C11 * C22 + C11 * C23 + 2 * C11 * C44 - 4 * (C12**2))
+        self.E3 = self.E2
+        self.ni12 = (C12)/(C22 + C23)
+        self.ni13 = self.ni12
+        self.ni23 = (C11 * C22 + 3 * C11 * C23 - 2 * C11 * C44 - 4 * (C12**2))/(3 * C11 * C22 + C11 * C23 + 2 * C11 * C44 - 4 * (C12**2)) 
+        self.G12 = C66
+        self.G13 = self.G12
+        self.G23 = (C22/4) - (C23/4) + (C44/2)
 
 
-            self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
+                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        if print_cntrl is True: 
+            self.print_properties()
 
     def print_properties(self) :
         print('E1 = ', str(np.round(self.E1, 4)), ' GPa')
@@ -329,17 +372,23 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         print('Ply thickness = ', str(np.round(self.cured_thickness, 4)), ' mm')
 
     def error_percent(self, data: list[float] or np.ndarray[float]):
-        self.errorE1 = np.abs((data[0] - self.E1*(10**3)))/data[0]
-        self.errorE2 = np.abs((data[1] - self.E2*(10**3)))/data[1]
-        self.errorE3 = np.abs((data[2] - self.E3*(10**3)))/data[2]
-        self.errorG12 = np.abs((data[3] - self.G12*(10**3)))/data[3]
-        self.errorG23 = np.abs((data[4] - self.G23*(10**3)))/data[4]
-        self.errorG13 = np.abs((data[5] - self.G13*(10**3)))/data[5]
-        self.errorni12 = np.abs((data[6] - self.ni12))/data[6]
-        self.errorni13 = np.abs((data[7] - self.ni13))/data[7]
-        self.errorni23 = np.abs((data[8] - self.ni23))/data[8]
-        self.errorrho = np.abs((data[9] - self.rho*((1/1000)*(1/10**9))))/data[9]
+        print('\033[36m', 'Note: \n')
+        print('Elastic properties units are in MPa')
+        print('Density units are in kg/m^3', '\033[37m')
+        self.error_E1 = np.abs((data[0] - self.E1)) / data[0]
+        self.error_E2 = np.abs((data[1] - self.E2)) / data[1]
+        self.error_E3 = np.abs((data[2] - self.E3)) / data[2]
+        self.error_G12 = np.abs((data[3] - self.G12)) / data[3]
+        self.error_G23 = np.abs((data[4] - self.G23)) / data[4]
+        self.error_G13 = np.abs((data[5] - self.G13)) / data[5]
+        self.error_ni12 = np.abs((data[6] - self.ni12)) / data[6]
+        self.error_ni13 = np.abs((data[7] - self.ni13)) / data[7]
+        if self.ni23 == 'NA':
+            self.error_ni23 = 'NA'
+        self.error_ni23 = np.abs((data[8] - self.ni23))/data[8]
+        self.error_rho = np.abs((data[9] - self.rho)) / data[9]
 
-        self.ERRORI = [self.errorE1, self.errorE2, self.errorE3, self.errorG12, self.errorG23, self.errorG13, self.errorni12, self.errorni13, self.errorni23, self.errorrho]
+        self.errors = [self.error_E1, self.error_E2, self.error_E3, self.error_G12, \
+                       self.error_G23, self.error_G13, self.error_ni12, self.error_ni13, self.error_ni23, self.error_rho]
 
         
