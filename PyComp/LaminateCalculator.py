@@ -91,9 +91,9 @@ class Laminate:
 
     '''         
         # USER WARNINGS        
-        print('\033[36m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
-        print('\033[36m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
-        print('\033[36m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
+        print('\033[35m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
+        print('\033[35m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
+        print('\033[35m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
 
         if mech_prop_units != 'MPa' and mech_prop_units != 'GPa' :
             raise Exception('The variable "mech_prop_units" must be either equal to "MPa" or to "GPa".')
@@ -149,13 +149,13 @@ class Laminate:
             ply_list_elements = {'name': ply_block[0], 'ni12': ply_block[1][3], 'ni13': ply_block[1][4], 'ni23': ply_block[1][5], \
                         'density': ply_block[1][9], 'thickness': ply_block[1][10]}
             if mech_prop_units == 'GPa':
-                print('\033[36m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
+                print('\033[35m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
                 ply_list_elements.update({ 'E1': ply_block[1][0] * 1000, 'E2': ply_block[1][1] * 1000, 'E3': ply_block[1][2] * 1000,\
                         'G12': ply_block[1][6] * 1000, 'G13': ply_block[1][7] * 1000, 'G23': ply_block[1][8] * 1000})
             else:
                 ply_list_elements.update({'E1': ply_block[1][0], 'E2': ply_block[1][1], 'E3': ply_block[1][2],\
                         'G12': ply_block[1][6], 'G13': ply_block[1][7], 'G23': ply_block[1][8]})
-                print('\033[36m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
+                print('\033[35m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
             plies.append(ply_list_elements)
 
             # the code is already looping over the input blocks (each block is a set of same-material plies with diffrent orientations)  
@@ -1813,16 +1813,16 @@ this method is used verify the stackup and to identify the first failing ply in 
             # internal method which check, extract and store the plies' max strenght data
             self.__add_max_strenght_properties(varargs[0], cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[36m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
-            print('\033[36m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[36m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
+            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
         else:
             # internal method which check, extract and store the plies' max strain data
             self.__add_max_strain_properties(varargs[0], cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[36m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
-            print('\033[36m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[36m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
+            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
 
         self.criteria = criteria
 
