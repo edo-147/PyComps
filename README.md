@@ -1,2 +1,0 @@
-# PyComp_internal
- 
