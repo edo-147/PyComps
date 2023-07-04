@@ -1,120 +1,134 @@
-__author__ = 'Edoardo Mancini(validated by Diego Chiocci)'
+__author__ = 'Edoardo Mancini', 'Diego Chiocci'
 
 from matplotlib.pyplot import vlines
 import numpy as np
 from typing import List
 
-
-#!!! CHECK UNITS !!!
-
-
-
 class PlyDef : 
     '''
-    Definition of the ply properties of a UD compostite ply starting from the fibre and material properties and the respective percentages. Different methods were developed to calculate the composite properties.
+    Definition of the ply properties of a UD compostite ply starting from the fiber and material properties and the respective percentages. Different methods were developed to calculate the composite properties.
 # References: 
-    - Johnes_Mechanics of Composite Materials
-    - Barbero_Introduction to Composite Materials Design
+    - Johnes, Mechanics of Composite Materials, 2nd edition
+    - Barbero, Introduction to Composite Materials Design, 3rd edition 
 
 '''
-    def __init__(self, fibre_properties: list[int] or np.ndarray[int], 
-                fibre_name: str, matrix_properties: list[int] or np.ndarray[int], 
-                matrix_name: str, fibre_frac: float=0, 
+    def __init__(self, fiber_properties: list[int] or np.ndarray[int], 
+                fiber_name: str, matrix_properties: list[int] or np.ndarray[int], 
+                matrix_name: str, fiber_frac: float=0, 
                 matrix_frac: float=0, mass_or_vol_frac: str='vol', 
                 draping: str='UD', grams_per_square_meter: int=0, compute_cured_thickness: bool=False,  
                 ) :
         '''
 # DESCRIPTION:
-The class "ply" is used to generate a ply starting from its properties 
+Initialization of the class "ply" creating a composite layer from its constituents 
 
 # INPUTS:
 
     Required
-    -   fibre_properties            : [GPa, adimensional, kg/m3] - list or numpy array of fibre mechanical properties in this order: E, ni, rho.
-    -   fibre_name                  : name of the fibre used
+    -   fiber_properties            : [GPa, adimensional, kg/m3] - list or numpy array of fiber mechanical properties in this order: E, ni, rho.
+    -   fiber_name                  : name of the fiber used
     -   matrix_properties           : [GPa, adimensional, kg/m3] - list or numpy array of matrix mechanical properties in this order: E, ni, rho.
-    -   matrix_name                 : name of the fibre used
+    -   matrix_name                 : name of the fiber used
 
     Optional 
     
-    -   fibre_frac                  : fibre volume or mass fraction. 
+    -   fiber_frac                  : fiber volume or mass fraction. 
     -   matrix_frac                 : matrix volume or mass fraction. It is required to provide either this quantity or the former. Also, both can be provided but in this case the values must agree
     -   mass_or_vol_frac            : whether the fraction is of mass or volume. Default "vol"
     -   draping                     : type of draping. Default "UD"
-    -   grams_per_square_meter      : grams per square meter of the fibre. Default 0
+    -   grams_per_square_meter      : grams per square meter of the fiber. Default 0
     -   compute_cured_thickness     : whether to compute or not the cured ply thickness. Default False.
 
 # OUTPUTS: 
     -   Class object with all the mechanical properties (E_i, n_ij, G_ij with i,j = 1, 2, 3 with i != j), and the other properties. In such a way that "output_name".properties returns the specific ply property
 
 # Example:
+    import PyComp_local as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
+
+    matrix_props = [513, .3, 1910]
+    matrix_name = 'M55J/Toray'
+    gpsqm = 160
+
+    ExamplePly1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
+
     ''' 
         # Checks on the inputs types
-        if isinstance(fibre_properties, list) is False and isinstance(fibre_properties, np.ndarray) is False:
-            raise ValueError('"fibre_properties" must either be a list or a np.array')
-        if isinstance(fibre_name, str) is False:
-            raise ValueError('"fibre_name" must be a string')
+        if isinstance(fiber_properties, list) is False and isinstance(fiber_properties, np.ndarray) is False:
+            raise Exception('"fiber_properties" must either be a list or a np.array')
+        if isinstance(fiber_name, str) is False:
+            raise Exception('"fiber_name" must be a string')
         if isinstance(matrix_properties, list) is False and isinstance(matrix_properties, np.ndarray) is False:
-            raise ValueError('"matrix_properties" must either be a list or a np.array')
+            raise Exception('"matrix_properties" must either be a list or a np.array')
         if isinstance(matrix_name, str) is False:
-            raise ValueError('"matrix_name" must be a string')
-        if isinstance(fibre_frac, float) is False and fibre_frac != 0:
-            raise ValueError('"fibre_frac" must either be a float or 0')
-        if isinstance(matrix_frac, float) is False and matrix_frac != 0:
-            raise ValueError('"matrix_frac" must either be a float or 0')
+            raise Exception('"matrix_name" must be a string')
+        if isinstance(fiber_frac, float) is False and fiber_frac != 0 and fiber_frac != 1:
+            raise Exception('"fiber_frac"  must be either float, 0 or 1.')
+        if isinstance(matrix_frac, float) is False and matrix_frac != 0 and matrix_frac != 1:
+            raise Exception('"matrix_frac" must be either float, 0 or 1.')
         if isinstance(mass_or_vol_frac, str) is False:
-            raise ValueError('"mass_or_vol_frac" must be a string')
+            raise Exception('"mass_or_vol_frac" must be a string')
         if isinstance(draping, str) is False:
-            raise ValueError('"draping" must either be a string')
+            raise Exception('"draping" must either be a string')
         if isinstance(grams_per_square_meter, int) is False and isinstance(grams_per_square_meter, float) is False:
-            raise ValueError('"grams_per_square_meter" must be an integer')
+            raise Exception('"grams_per_square_meter" must be a float or an integer')
         if grams_per_square_meter < 0: 
-            raise ValueError('grams_per_square_meter must be positive')
+            raise Exception('grams_per_square_meter must be positive')
         if isinstance(compute_cured_thickness, bool) is False:
-            raise ValueError('"compute_cured_thickness" must be a boolean')
+            raise Exception('"compute_cured_thickness" must be a boolean')
 
         # Additional checks
-        if fibre_frac == 0 and matrix_frac == 0 :
-            raise ValueError('Either fibre_vol_frac or matrix_vol_frac must be different from 0')
-        if fibre_frac != 0 and matrix_frac != 0 : 
-            if 1 - fibre_frac != matrix_frac : 
-                raise ValueError('You provided both the fibre and the matrix volume fractions but their sum is different from 1. Please provide only one of the two or input coherent values')
+        if fiber_frac == 0 and matrix_frac == 0 :
+            raise Exception('Either fiber_vol_frac or matrix_vol_frac must be different from 0')
+        if fiber_frac < 0:
+            raise Exception('Error, fiber_frac must be positive.')
+        if matrix_frac <0:
+            raise Exception('Error, matrix_frac must be positive.')
+        if fiber_frac > 1:
+            raise Exception('Error, fiber_frac must be smaller or equal than 1.')
+        if matrix_frac > 1:
+            raise Exception('Error, matrix_frac must be smaller or equal than 1.')
+        if fiber_frac != 0 and matrix_frac != 0 : 
+            if 1 - fiber_frac != matrix_frac : 
+                raise Exception('You provided both the fiber and the matrix volume fractions but their sum is different from 1. Please provide only one of the two or input coherent values')
         if mass_or_vol_frac != 'vol' and mass_or_vol_frac != 'wgt' :
-            raise ValueError('The value of the variable "mass_or_vol_frac" is not acceptable. Accepted values are: "vol" or "wgt".')
+            raise Exception('The value of the variable "mass_or_vol_frac" is not acceptable. Accepted values are: "vol" or "wgt".')
         if draping != 'UD' : 
-            raise ValueError('The value of the variable "draping" is not acceptable. Accepted values are "UD".')
+            raise Exception('The value of the variable "draping" is not acceptable. Accepted values are "UD".')
 
-        self.name = f'{fibre_name} - {matrix_name}'
-        self.fibre_E, self.fibre_ni, self.fibre_rho = fibre_properties
-        self.fibre_G = self.fibre_E / (2 * (1 + self.fibre_ni))
+        self.name = f'{fiber_name} - {matrix_name}'
+        self.fiber_E, self.fiber_ni, self.fiber_rho = fiber_properties
+        self.fiber_G = self.fiber_E / (2 * (1 + self.fiber_ni))
         
         self.matrix_E, self.matrix_ni, self.matrix_rho = matrix_properties
         self.matrix_G = self.matrix_E / (2 * (1 + self.matrix_ni))
 
         if mass_or_vol_frac == 'vol' :
-            if fibre_frac == 0 :
+            if fiber_frac == 0 :
                 self.matrix_vol_frac = matrix_frac
-                self.fibre_vol_frac = 1 - self.matrix_vol_frac
+                self.fiber_vol_frac = 1 - self.matrix_vol_frac
             else: 
-                self.fibre_vol_frac = fibre_frac
-                self.matrix_vol_frac = 1 - self.fibre_vol_frac
+                self.fiber_vol_frac = fiber_frac
+                self.matrix_vol_frac = 1 - self.fiber_vol_frac
             
-            self.rho = self.fibre_rho * self.fibre_vol_frac + self.matrix_rho * self.matrix_vol_frac
+            self.rho = self.fiber_rho * self.fiber_vol_frac + self.matrix_rho * self.matrix_vol_frac
 
-            self.fibre_wgt_frac = self.fibre_vol_frac * self.fibre_rho / self.rho 
+            self.fiber_wgt_frac = self.fiber_vol_frac * self.fiber_rho / self.rho 
             self.matrix_wgt_frac = self.matrix_vol_frac * self.matrix_rho / self.rho
 
         else : 
-            if fibre_frac == 0 : 
+            if fiber_frac == 0 : 
                 self.matrix_wgt_frac = matrix_frac
-                self.fibre_wgt_frac = 1 - self.matrix_wgt_frac
+                self.fiber_wgt_frac = 1 - self.matrix_wgt_frac
             else: 
-                self.fibre_wgt_frac = fibre_frac
-                self.matrix_wgt_frac = 1 - self.fibre_wgt_frac    
+                self.fiber_wgt_frac = fiber_frac
+                self.matrix_wgt_frac = 1 - self.fiber_wgt_frac    
 
-            self.rho = self.fibre_rho * self.matrix_rho / (self.fibre_wgt_frac * self.matrix_rho + self.matrix_wgt_frac * self.fibre_rho)
+            self.rho = self.fiber_rho * self.matrix_rho / (self.fiber_wgt_frac * self.matrix_rho + self.matrix_wgt_frac * self.fiber_rho)
             
-            self.fibre_vol_frac = self.fibre_wgt_frac * self.rho / self.fibre_rho 
+            self.fiber_vol_frac = self.fiber_wgt_frac * self.rho / self.fiber_rho 
             self.matrix_vol_frac = self.matrix_wgt_frac * self.rho / self.matrix_rho        
         
         if grams_per_square_meter == 0:
@@ -123,51 +137,74 @@ The class "ply" is used to generate a ply starting from its properties
         if grams_per_square_meter != 0 : 
            self.grm2 = grams_per_square_meter
            if compute_cured_thickness is True :
-               self.cured_thickness = grams_per_square_meter / (1000 * (self.fibre_rho / 1000) * self.fibre_vol_frac)
+               self.cured_thickness = grams_per_square_meter / (1000 * (self.fiber_rho / 1000) * self.fiber_vol_frac)
            else :
                self.cured_thickness = 'NA'
 
-    def ROM_calc (self, fibre_properties: List[int] or np.ndarray[int], 
-                fibre_name: str, matrix_properties: List[int] or np.ndarray[int], 
-                matrix_name: str, fibre_frac: float=0, 
-                matrix_frac: float=0, mass_or_vol_frac: str='vol', 
-                draping: str='UD') :
+    def ROM(self, print_cntrl:bool=False) :
+        '''
+# DESCRIPTION:
+The class "ply" is used to generate a ply starting from its properties 
 
-            super().__init__(fibre_properties, fibre_name, matrix_properties, matrix_name, fibre_frac, 
-                            matrix_frac, mass_or_vol_frac, draping)
+# INPUTS:
 
-            self.E1 = self.fibre_E * self.fibre_vol_frac + self.matrix_E * self.matrix_vol_frac
-            self.E2 = self.fibre_E * self.matrix_E / (self.matrix_vol_frac * self.fibre_E + self.fibre_vol_frac * self.matrix_E)
-            self.E3 = self.E2
+    Required
+    - None
+    Optional   
+    - print_cntrl: wheather to print or not the computed ply properties
+# OUTPUTS: 
+    - None
+# Example:
+    import PyComp_local as comp
+    fiber_props = [513, .3, 1910]
+    fiber_name = 'M55J/Toray'
+    fiber_mass_frac = 1 - .31
 
-            self.G12 = self.fibre_G * self.matrix_G / (self.matrix_vol_frac * self.fibre_G + self.fibre_vol_frac * self.matrix_G)
-            self.G13 = self.G12
-            self.G23 = self.matrix_G
+    matrix_props = [513, .3, 1910]
+    matrix_name = 'M55J/Toray'
+    gpsqm = 160
 
-            self.ni12 = self.fibre_ni * self.fibre_vol_frac + self.matrix_ni * self.matrix_vol_frac            
-            self.ni13 = self.ni12
-            self.ni23 = self.E2 / (self.G23 * 2) - 1
-            self.ni21 = self.ni12 * self.E2 / self.E1
-            self.ni31 = self.ni21
-            self.ni32 = self.ni23
-            print('\033[33m','WARNING:The value "ni23" and "G23" were set to the matrix value. I a more precise value is needed use another method.')
+    ExamplePly1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac = fiber_mass_frac, mass_or_vol_frac='wgt')
 
-            self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+    ''' 
+        if isinstance(print_cntrl, bool) is False:
+            raise Exception('Error. The variable "print_cntrl" must be boolean.')
+        
+        self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
+        self.E2 = self.fiber_E * self.matrix_E / (self.matrix_vol_frac * self.fiber_E + self.fiber_vol_frac * self.matrix_E)
+        self.E3 = self.E2
 
+        self.G12 = self.fiber_G * self.matrix_G / (self.matrix_vol_frac * self.fiber_G + self.fiber_vol_frac * self.matrix_G)
+        self.G13 = self.G12
+        self.G23 = self.matrix_G
+
+        self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
+        self.ni13 = self.ni12
+        self.ni23 = self.E2 / (self.G23 * 2) - 1
+        self.ni21 = self.ni12 * self.E2 / self.E1
+        self.ni31 = self.ni21
+        self.ni32 = self.ni23
+        print('\033[33m','WARNING:The value "ni23" and "G23" were set to the matrix value. I a more precise value is needed use another method.')
+        print('\033[37m',' ')
+
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+
+        if print_cntrl is True: 
+            self.print_properties()
     def SSP_calc(self, csi_E: float=2) :
 
             # Halphin_Tsai method used, SSP too complicated 
-            self.E1 = self.fibre_E * self.fibre_vol_frac + self.matrix_E * self.matrix_vol_frac
-            self.ni12 = self.fibre_ni * self.fibre_vol_frac + self.matrix_ni * self.matrix_vol_frac            
+            self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
+            self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac            
 
-            eta_E = (self.fibre_E / self.matrix_E - 1) / (self.fibre_E / self.matrix_E + csi_E)
-            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fibre_vol_frac) / (1 - eta_E * self.fibre_vol_frac)
+            eta_E = (self.fiber_E / self.matrix_E - 1) / (self.fiber_E / self.matrix_E + csi_E)
+            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
             self.E3 = self.E2
 
-            eta_ssp_23 = (3 - self.matrix_ni + self.matrix_G / self.fibre_G) / (4 * (1 - self.matrix_ni))
-            self.G23 = self.matrix_G * (self.fibre_vol_frac + eta_ssp_23 * (1 - self.fibre_vol_frac))   
+            eta_ssp_23 = (3 - self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
+            self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_ssp_23 * (1 - self.fiber_vol_frac))   
             eta_s = .5 * (1 + self.matrix_G / self.matrix_E)
-            self.G12 = (self.fibre_vol_frac + eta_s * (1 - self.fibre_vol_frac)) / (eta_s * (1 - self.fibre_vol_frac) + self.fibre_vol_frac * self.matrix_G / self.fibre_G)
+            self.G12 = (self.fiber_vol_frac + eta_s * (1 - self.fiber_vol_frac)) / (eta_s * (1 - self.fiber_vol_frac) + self.fiber_vol_frac * self.matrix_G / self.fiber_G)
             self.G13 = self.G12
 
             self.ni13 = self.ni12
@@ -211,31 +248,31 @@ The class "ply" is used to generate a ply starting from its properties
 
             # Computed with ROM 
             # if csi_E == 'def' :
-            #     csi_E = 1 + 40 * self.fibre_vol_frac ** 40
+            #     csi_E = 1 + 40 * self.fiber_vol_frac ** 40
             # elif csi_E == 1 :
             #     pass
-            self.E1 = self.fibre_E * self.fibre_vol_frac + self.matrix_E * self.matrix_vol_frac
-            self.ni12 = self.fibre_ni * self.fibre_vol_frac + self.matrix_ni * self.matrix_vol_frac
+            self.E1 = self.fiber_E * self.fiber_vol_frac + self.matrix_E * self.matrix_vol_frac
+            self.ni12 = self.fiber_ni * self.fiber_vol_frac + self.matrix_ni * self.matrix_vol_frac
             
 
-            eta_E = (self.fibre_E / self.matrix_E - 1) / (self.fibre_E / self.matrix_E + csi_E)
-            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fibre_vol_frac) / (1 - eta_E * self.fibre_vol_frac)
+            eta_E = (self.fiber_E / self.matrix_E - 1) / (self.fiber_E / self.matrix_E + csi_E)
+            self.E2 = self.matrix_E * (1 + csi_E * eta_E * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
 
             if csi_G == 'def' :
-                csi_G = 1 + 40 * self.fibre_vol_frac ** 10
+                csi_G = 1 + 40 * self.fiber_vol_frac ** 10
             elif csi_G == 1 :
                 pass
             
-            eta_G = (self.fibre_G / self.matrix_G - 1) / (self.fibre_G / self.matrix_G + csi_G)
-            self.G12 = self.matrix_G * (1 + csi_G * eta_G * self.fibre_vol_frac) / (1 - eta_E * self.fibre_vol_frac)
+            eta_G = (self.fiber_G / self.matrix_G - 1) / (self.fiber_G / self.matrix_G + csi_G)
+            self.G12 = self.matrix_G * (1 + csi_G * eta_G * self.fiber_vol_frac) / (1 - eta_E * self.fiber_vol_frac)
             
             #SSP for G23
-            eta_23 = (3 - 4 * self.matrix_ni + self.matrix_G / self.fibre_G) / (4 * (1 - self.matrix_ni))
-            self.G23 = self.matrix_G * (self.fibre_vol_frac + eta_23*(1 - self.fibre_vol_frac)) / (eta_23 * (1 - self.fibre_vol_frac) + (self.fibre_vol_frac * self.matrix_G / self.fibre_G)) 
+            eta_23 = (3 - 4 * self.matrix_ni + self.matrix_G / self.fiber_G) / (4 * (1 - self.matrix_ni))
+            self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
             
             #calcolo della ni23
-            # eta_ni23=(self.fibre_ni/self.matrix_ni - 1)/(self.fibre_ni/self.matrix_ni +csi_ni23)
-            # self.ni23=self.matrix_ni * (1 + csi_ni23 * eta_ni23 * self.fibre_vol_frac)/(1- eta_ni23 * self.fibre_vol_frac)
+            # eta_ni23=(self.fiber_ni/self.matrix_ni - 1)/(self.fiber_ni/self.matrix_ni +csi_ni23)
+            # self.ni23=self.matrix_ni * (1 + csi_ni23 * eta_ni23 * self.fiber_vol_frac)/(1- eta_ni23 * self.fiber_vol_frac)
 
 
             self.G13 = self.G12
@@ -249,20 +286,17 @@ The class "ply" is used to generate a ply starting from its properties
             
             self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
             
-
-# class PMM_CalcUDProps(CalcUDProps) :                       
-#         def __init__(self, csi: float=2) :
     def PMM(self) : 
         
             mu_0 = self.matrix_G
-            mu_1 = self.fibre_G
+            mu_1 = self.fiber_G
             ni_0 = self.matrix_ni
-            ni_1 = self.fibre_ni
-            f = self.fibre_vol_frac
+            ni_1 = self.fiber_ni
+            f = self.fiber_vol_frac
 
             # lambda_0 = (self.matrix_ni * self.matrix_E) / (1 + self.matrix_ni) * (1 - self.matrix_ni * 2)
             lambda_0 = (self.matrix_E * self.matrix_ni) / ((1 + self.matrix_ni) * (1 - self.matrix_ni * 2))
-            # lambda_1 = self.fibre_ni * self.fibre_E / (1 + self.fibre_ni) * (1 - self.fibre_ni * 2)
+            # lambda_1 = self.fiber_ni * self.fiber_E / (1 + self.fiber_ni) * (1 - self.fiber_ni * 2)
             
             a = mu_1 - mu_0 - 2 * mu_1 * ni_0 + 2 * mu_0 * ni_1
             b = - mu_0 * ni_0 + mu_1 * ni_1 + 2 * mu_0 * ni_0 * ni_1 - 2 * mu_1 * ni_0 * ni_1 
@@ -342,7 +376,7 @@ The class "ply" is used to generate a ply starting from its properties
         print('rho = ', str(self.rho), ' kg/m^3')
         print('Ply thickness = ', str(self.cured_thickness), ' mm')
 
-    def error_percent(self,data: np.ndarray[float]):
+    def error_percent(self, data: list[float] or np.ndarray[float]):
         self.errorE1 = np.abs((data[0] - self.E1*(10**3)))/data[0]
         self.errorE2 = np.abs((data[1] - self.E2*(10**3)))/data[1]
         self.errorE3 = np.abs((data[2] - self.E3*(10**3)))/data[2]
