@@ -6,8 +6,11 @@ Easy calculation of composite properties
 Brief description
 ----------------------------
 A Python toolbox for the structural analysis of orthotropic layered components. 
+
 Features:
+
 - Meso/Macromechanics: punctual calculation of mechanical properties and stresses in accordance with CLT and FSDT.
+
 - Micromechanics: calculation of ply equivalent mechanical properties starting from isotropic constituents.
 
 Package usage: 
