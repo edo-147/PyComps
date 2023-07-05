@@ -168,26 +168,26 @@ class TestMicromech(unittest.TestCase):
             data_in = 'data'
             example_ply_1.error_percent(data_in)
         with self.assertRaises(Exception):
-            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575, 1575]
+            data_in = [295, 17, 17, .25, .27, .25, 6.8, 6.2, 6.8, 1575, 1575]
             example_ply_1.error_percent(data_in)
         with self.assertRaises(Exception):
-            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, '1575']
+            data_in = [295, 17, 17, .25, .27, .25, 6.8, 6.2, 6.8, '1575']
             example_ply_1.error_percent(data_in)
         with self.assertRaises(Exception):
-            data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575]
+            data_in = [295, 17, 17, .25, .27, .25, 6.8, 6.2, 6.8, 1575]
             example_ply_1.error_percent(data_in, print_cntrl='False')
 
     def test_error_percent_outputs(self):
         example_ply_1 = comp.PlyDef([513, .3, 1910], 'M55J/Toray', [5, .3, 1156], 'Ex-1515', fiber_frac=.69, mass_or_vol_frac='wgt', grams_per_square_meter=160, compute_cured_thickness=True)
         example_ply_1.PMM()
-        data_in = [295, 17, 17, .25, .25, .27, 6.8, 6.2, 6.8, 1575]
+        data_in = [295, 17, 17, .25, .27, .25, 6.8, 6.2, 6.8, 1575]
         example_ply_1.error_percent(data_in)
         self.assertEqual(np.round(example_ply_1.error_percent_E1, 4), .5309)
         self.assertEqual(np.round(example_ply_1.error_percent_E2, 4), 2.7801)
         self.assertEqual(np.round(example_ply_1.error_percent_E3, 4), 2.7801)
         self.assertEqual(np.round(example_ply_1.error_percent_ni12, 4), 20)
         self.assertEqual(np.round(example_ply_1.error_percent_ni13, 4), 20)
-        self.assertEqual(np.round(example_ply_1.error_percent_ni23, 4), 0.0121)
+        self.assertEqual(np.round(example_ply_1.error_percent_ni23, 4), 30.5096)
         self.assertEqual(np.round(example_ply_1.error_percent_G12, 4), 2.046)
         self.assertEqual(np.round(example_ply_1.error_percent_G23, 4), 4.1931)
         self.assertEqual(np.round(example_ply_1.error_percent_G13, 4), 2.046)

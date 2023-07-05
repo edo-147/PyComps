@@ -404,14 +404,14 @@ Print ply properties
         print('Ply thickness = ', str(np.round(self.cured_thickness, 4)), ' mm')
 
     def error_percent(self, data: list[float or int] or np.ndarray[float or int], print_cntrl:bool= False):
-        '''
+        ''''
 # DESCRIPTION:
 Compute the error percent between the computed ply properties and those from an external model
 # INPUTS:
     Required
-    - None
+    - data_in: vector of material data for comparison. Expected format is: [E1, E2, E3, ni12, ni23, ni13, G12, G23, G13, rho]
     Optional   
-    
+    - print_cntrl, if "True" prints the % error. Default is false.
 # OUTPUTS: 
     - None
 
@@ -458,16 +458,15 @@ Compute the error percent between the computed ply properties and those from an 
         self.error_percent_E2 = np.abs((data[1] - self.E2)) / data[1] * 100
         self.error_percent_E3 = np.abs((data[2] - self.E3)) / data[2] * 100
         self.error_percent_ni12 = np.abs((data[3] - self.ni12)) / data[3] * 100
-        self.error_percent_ni13 = np.abs((data[4] - self.ni13)) / data[4] * 100
         if self.ni23 == 'NA':
             self.error_percent_ni23 = 'NA'
         else:
-            self.error_percent_ni23 = np.abs((data[5] - self.ni23)) /data[8]
+            self.error_percent_ni23 = np.abs((data[4] - self.ni23)) / data[4] * 100
+        self.error_percent_ni13 = np.abs((data[5] - self.ni13)) / data[5] * 100
         self.error_percent_G12 = np.abs((data[6] - self.G12)) / data[6] * 100
         self.error_percent_G23 = np.abs((data[7] - self.G23)) / data[7] * 100
         self.error_percent_G13 = np.abs((data[8] - self.G13)) / data[8] * 100
         self.error_percent_rho = np.abs((data[9] - self.rho)) / data[9] * 100
-
 
         self.error_E1 = self.error_percent_E1 / 100 
         self.error_E2 = self.error_percent_E2 / 100 
@@ -502,5 +501,3 @@ Compute the error percent between the computed ply properties and those from an 
             print('error G23 % = ', str(np.round(self.error_percent_G23, 4)))
             print('error G13 % = ', str(np.round(self.error_percent_G13, 4)))
             print('error rho % = ', str(np.round(self.error_percent_rho, 4)))
-
-
