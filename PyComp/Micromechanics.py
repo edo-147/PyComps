@@ -187,8 +187,8 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
         print('\033[35m','Note: The value "ni23" and "G23" are not computed but set to the matrix value. \n For a more precise value use another method.')
         print('\033[37m',' ')
 
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
 
         if print_cntrl is True: 
             self.print_properties()
@@ -264,8 +264,8 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.ni31 = self.ni21
         self.ni32 = self.ni23
         
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
         
         print('\033[35m','Note: The value "ni23" is not computed but set equal to ni12. \n For a more precise value use another method.')
         print('\033[37m',' ')
@@ -349,8 +349,9 @@ Following the Periodic Microstructure Model method, the method computes ply equi
         self.G23 = (C22/4) - (C23/4) + (C44/2)
 
 
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        
         if print_cntrl is True: 
             self.print_properties()
 
