@@ -164,8 +164,8 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
     matrix_name = 'Ex-1515'
     gpsqm = 160
 
-    example_ply_1 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac=fiber_mass_frac, grams_per_square_meter=gpsqm, compute_cured_thickness=True, mass_or_vol_frac='wgt')
-    example_ply_1.ROM(print_cntrl=True)
+    example_ply_2 = comp.PlyDef(fiber_props, fiber_name, matrix_props, matrix_name, fiber_frac=fiber_mass_frac, grams_per_square_meter=gpsqm, compute_cured_thickness=True, mass_or_vol_frac='wgt')
+    example_ply_2.ROM(print_cntrl=True)
     ''' 
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" must be boolean.')
@@ -184,7 +184,7 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
         self.ni21 = self.ni12 * self.E2 / self.E1
         self.ni31 = self.ni21
         self.ni32 = self.ni23
-        print('\033[35m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
+        print('\033[35m','Note: The value "ni23" and "G23" are not computed but set to the matrix value. \n For a more precise value use another method.')
         print('\033[37m',' ')
 
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
@@ -256,7 +256,6 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.G23 = self.matrix_G * (self.fiber_vol_frac + eta_23*(1 - self.fiber_vol_frac)) \
               / (eta_23 * (1 - self.fiber_vol_frac) + (self.fiber_vol_frac * self.matrix_G / self.fiber_G)) 
         
-
         self.G13 = self.G12
         self.E3 = self.E2
         self.ni13 = self.ni12
@@ -268,7 +267,7 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
                            self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
         
-        print('\033[35m','Note:The value "ni23" and "G23" were set to the matrix value. For a more precise value use another method.')
+        print('\033[35m','Note: The value "ni23" is not computed but set equal to ni12. \n For a more precise value use another method.')
         print('\033[37m',' ')
 
         if print_cntrl is True: 
@@ -434,7 +433,7 @@ Compute the error percent between the computed ply properties and those from an 
     '''
 
         print('\033[35m', 'Note: \n')
-        print('Elastic properties units are in MPa')
+        print('Elastic properties units are in GPa')
         print('Density units are in kg/m^3', '\033[37m')
 
         if isinstance(data, list) is False and isinstance(data, np.ndarray) is False:
@@ -467,7 +466,7 @@ Compute the error percent between the computed ply properties and those from an 
         self.error_percent_G12 = np.abs((data[6] - self.G12)) / data[6] * 100
         self.error_percent_G23 = np.abs((data[7] - self.G23)) / data[7] * 100
         self.error_percent_G13 = np.abs((data[8] - self.G13)) / data[8] * 100
-        self.error_percent_rho = np.abs((data[9] - self.rho)) / data[9]
+        self.error_percent_rho = np.abs((data[9] - self.rho)) / data[9] * 100
 
 
         self.error_E1 = self.error_percent_E1 / 100 

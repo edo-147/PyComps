@@ -191,7 +191,7 @@ class TestMicromech(unittest.TestCase):
         self.assertEqual(np.round(example_ply_1.error_percent_G12, 4), 2.046)
         self.assertEqual(np.round(example_ply_1.error_percent_G23, 4), 4.1931)
         self.assertEqual(np.round(example_ply_1.error_percent_G13, 4), 2.046)
-        self.assertEqual(np.round(example_ply_1.error_percent_rho, 4), .0087)
+        self.assertEqual(np.round(example_ply_1.error_percent_rho, 4), .8735)
 
 if __name__ == '__main__':
     unittest.main()
