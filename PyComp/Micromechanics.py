@@ -432,9 +432,8 @@ Compute the error percent between the computed ply properties and those from an 
 
     '''
 
-        print('\033[35m', 'Note: \n')
-        print('Elastic properties units are in GPa')
-        print('Density units are in kg/m^3', '\033[37m')
+        print('\033[35m', 'Note: Elastic properties units are in GPa.')
+        print('Density units are in kg/m^3.', '\033[37m')
 
         if isinstance(data, list) is False and isinstance(data, np.ndarray) is False:
             raise Exception('Input data must be either a list or a numpy array.')
@@ -492,11 +491,11 @@ Compute the error percent between the computed ply properties and those from an 
             print('error E2 % = ', str(np.round(self.error_percent_E2, 4)))
             print('error E3 % = ', str(np.round(self.error_percent_E3, 4)))
             print('error ni12 % = ', str(np.round(self.error_percent_ni12, 4)))    
-            print('error ni13 % = ', str(np.round(self.error_percent_ni13, 4)))
             if self.ni23 != 'NA':
                 print('error ni23 % = ', str(np.round(self.error_percent_ni23, 4)))
             else: 
                 print('error ni23 %  = NA')
+            print('error ni13 % = ', str(np.round(self.error_percent_ni13, 4)))
             print('error G12 % = ', str(np.round(self.error_percent_G12, 4)))
             print('error G23 % = ', str(np.round(self.error_percent_G23, 4)))
             print('error G13 % = ', str(np.round(self.error_percent_G13, 4)))
