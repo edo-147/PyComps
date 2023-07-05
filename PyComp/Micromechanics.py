@@ -188,7 +188,7 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
         print('\033[37m',' ')
 
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
-                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
 
         if print_cntrl is True: 
             self.print_properties()
@@ -265,7 +265,7 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.ni32 = self.ni23
         
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
-                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
         
         print('\033[35m','Note: The value "ni23" is not computed but set equal to ni12. \n For a more precise value use another method.')
         print('\033[37m',' ')
@@ -350,7 +350,7 @@ Following the Periodic Microstructure Model method, the method computes ply equi
 
 
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
-                           self.ni13, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
         
         if print_cntrl is True: 
             self.print_properties()
@@ -483,10 +483,10 @@ Compute the error percent between the computed ply properties and those from an 
         self.error_rho = self.error_percent_rho / 100
 
         self.errors = [self.error_E1, self.error_E2, self.error_E3, self.error_G12, \
-                       self.error_G23, self.error_G13, self.error_ni12, self.error_ni13, self.error_ni23, self.error_rho]
+                       self.error_G23, self.error_G13, self.error_ni12, self.error_ni23, self.error_ni13, self.error_rho]
         self.errors_percent = [self.error_percent_E1, self.error_percent_E2, self.error_percent_E3, \
                                self.error_percent_G12, self.error_percent_G23, self.error_percent_G13, \
-                                self.error_percent_ni12, self.error_percent_ni13]
+                                self.error_percent_ni12, self.error_percent_ni23, self.error_percent_ni13]
         if print_cntrl is True:
             print('error E1 % = ', str(np.round(self.error_percent_E1, 4)))
             print('error E2 % = ', str(np.round(self.error_percent_E2, 4)))
