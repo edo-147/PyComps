@@ -265,7 +265,7 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.ni32 = self.ni23
         
         self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
+                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
         
         print('\033[35m','Note: The value "ni23" is not computed but set equal to ni12. \n For a more precise value use another method.')
         print('\033[37m',' ')
