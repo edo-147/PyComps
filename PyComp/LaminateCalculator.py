@@ -151,14 +151,14 @@ class Laminate:
                         'density': ply_block[1][9], 'thickness': ply_block[1][10]}
             if mech_prop_units == 'GPa':
                 if hide_text is False:
-                    print('\033[35m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
+                    print('\033[35m', 'Assumed input elastic modulus\' units are GPa', '\033[37m',' ')
                 ply_list_elements.update({ 'E1': ply_block[1][0] * 1000, 'E2': ply_block[1][1] * 1000, 'E3': ply_block[1][2] * 1000,\
                         'G12': ply_block[1][6] * 1000, 'G13': ply_block[1][7] * 1000, 'G23': ply_block[1][8] * 1000})
             else:
                 ply_list_elements.update({'E1': ply_block[1][0], 'E2': ply_block[1][1], 'E3': ply_block[1][2],\
                         'G12': ply_block[1][6], 'G13': ply_block[1][7], 'G23': ply_block[1][8]})
                 if hide_text is False:
-                    print('\033[35m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
+                    print('\033[35m', 'Assumed input elastic modulus\' units are MPa', '\033[37m',' ')
             plies.append(ply_list_elements)
 
             # the code is already looping over the input blocks (each block is a set of same-material plies with diffrent orientations)  
