@@ -19,7 +19,7 @@ class Laminate:
 
 '''
 # Initialization method 
-    def __init__(self, *varargs:list[str, list or np.ndarray, list or np.ndarray], mech_prop_units:str='GPa'):
+    def __init__(self, *varargs:list[str, list or np.ndarray, list or np.ndarray], mech_prop_units:str='GPa', hide_text:bool=False):
         '''
 # DESCRIPTION:
     In the init method the single plies are defined and their properties exctracted 
@@ -82,7 +82,7 @@ class Laminate:
     # Example:
 
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
         ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
@@ -91,9 +91,10 @@ class Laminate:
 
     '''         
         # USER WARNINGS        
-        print('\033[35m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
-        print('\033[35m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
-        print('\033[35m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
+        if hide_text is False:
+            print('\033[35m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
+            print('\033[35m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
+            print('\033[35m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
 
         if mech_prop_units != 'MPa' and mech_prop_units != 'GPa' :
             raise Exception('The variable "mech_prop_units" must be either equal to "MPa" or to "GPa".')
@@ -149,13 +150,15 @@ class Laminate:
             ply_list_elements = {'name': ply_block[0], 'ni12': ply_block[1][3], 'ni13': ply_block[1][4], 'ni23': ply_block[1][5], \
                         'density': ply_block[1][9], 'thickness': ply_block[1][10]}
             if mech_prop_units == 'GPa':
-                print('\033[35m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
+                if hide_text is False:
+                    print('\033[35m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
                 ply_list_elements.update({ 'E1': ply_block[1][0] * 1000, 'E2': ply_block[1][1] * 1000, 'E3': ply_block[1][2] * 1000,\
                         'G12': ply_block[1][6] * 1000, 'G13': ply_block[1][7] * 1000, 'G23': ply_block[1][8] * 1000})
             else:
                 ply_list_elements.update({'E1': ply_block[1][0], 'E2': ply_block[1][1], 'E3': ply_block[1][2],\
                         'G12': ply_block[1][6], 'G13': ply_block[1][7], 'G23': ply_block[1][8]})
-                print('\033[35m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
+                if hide_text is False:
+                    print('\033[35m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
             plies.append(ply_list_elements)
 
             # the code is already looping over the input blocks (each block is a set of same-material plies with diffrent orientations)  
