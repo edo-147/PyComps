@@ -190,15 +190,5 @@ class TestLamCalc(unittest.TestCase):
         gamma_out_2_ref = np.array([0, 0.00039])
         np.testing.assert_array_equal(np.round(laminate.gamma_out[2], 5), gamma_out_2_ref)
 
-        
- 
-    # def test_calc_sss_state_outputs(self):
-    #     ply_name = 'Toray T300 - Epoxy 8552'
-    #     ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
-    #     ply_stkup = [0, 90, 45, -45, 45, -45, 45, 90, 0, 45]
-    #     laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
-        
-
-
 if __name__ == '__main__':
     unittest.main()
