@@ -103,5 +103,102 @@ class TestLamCalc(unittest.TestCase):
         self.assertEqual(laminate.rb, 0.00644)
         self.assertEqual(laminate.rn, 0.0103)
 
+    def test_calc_sss_state_inputs(self):
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
+        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        N = [230, .10, -2.5]
+        M = [-160, .012, -0.3]
+        V = [.0005, 3.5]       
+
+
+        # N is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state('N', M, V, print=True, print_shear=True)
+        # M is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, 'M', V, print=True, print_shear=True)
+        # V is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, 'V', print=True, print_shear=True)
+        
+        # N is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state([230, '.10', -2.5], M, V, print=True, print_shear=True)
+        # M is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, [-160, '.012', -0.3], V, print=True, print_shear=True)
+        # V is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, [.0005, '3.5'], print=True, print_shear=True)
+        
+        # N is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(np.array([230, '.10', -2.5]), M, V, print=True, print_shear=True)
+        # M is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, np.array([-160, '.012', -0.3]), V, print=True, print_shear=True)
+        # V is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, np.array([.0005, '3.5']), print=True, print_shear=True)
+
+        # N has the wrong length
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state([230, -2.5], M, V, print=True, print_shear=True)
+        # M has the wrong length
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, [-160, -0.3], V, print=True, print_shear=True)
+        # V has the wrong length
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, [.0005], print=True, print_shear=True)
+        
+        # cntr_external_actions is not an int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, V, print=True, print_shear=True, cntrl_external_actions='2')
+        # cntr_external_actions is not 0, 1, 2 or 3
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, V, print=True, print_shear=True, cntrl_external_actions=4)
+        # T_in is nor a float an int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, V, print=True, print_shear=True, T_in='1')
+        # m_in is nor a float an int
+        with self.assertRaises(Exception):
+            laminate.calculate_stress_state(N, M, V, print=True, print_shear=True, m_in='0')
+        
+    def test_calc_sss_state_outputs(self):
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
+        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        N = [230, .10, -2.5]
+        M = [-160, .012, -0.3]
+        V = [.0005, 3.5]      
+        laminate.calculate_stress_state(N, M, V, print=False)    
+
+        sigma_bot_0_ref = np.array([ 3.824e+02, -7.970e+01, -1.000e-01])
+        np.testing.assert_array_equal(np.round(laminate.sigma_bot[0], 1), sigma_bot_0_ref)
+        sigma_top_3_ply_ref_ref = np.array([ 50.4,  54.5, -10.5])
+        np.testing.assert_array_equal(np.round(laminate.sigma_top_ply_ref[3], 1), sigma_top_3_ply_ref_ref)
+        tau_oop_bot_6_ref = np.array([0. , 1.2])
+        np.testing.assert_array_equal(np.round(laminate.tau_oop_bot[6], 1), tau_oop_bot_6_ref)
+
+        def_bot_4_ref = np.array([2.41e-03, -7.70e-04, -7.00e-05])
+        np.testing.assert_array_equal(np.round(laminate.def_bot[4], 5), def_bot_4_ref)
+        def_top_2_ref = np.array([ 3.38e-03, -9.70e-04, -6.00e-05])
+        np.testing.assert_array_equal(np.round(laminate.def_top[2], 5), def_top_2_ref)
+        gamma_out_2_ref = np.array([0, 0.00039])
+        np.testing.assert_array_equal(np.round(laminate.gamma_out[2], 5), gamma_out_2_ref)
+
+        
+ 
+    # def test_calc_sss_state_outputs(self):
+    #     ply_name = 'Toray T300 - Epoxy 8552'
+    #     ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
+    #     ply_stkup = [0, 90, 45, -45, 45, -45, 45, 90, 0, 45]
+    #     laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        
+
+
 if __name__ == '__main__':
     unittest.main()

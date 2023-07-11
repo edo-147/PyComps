@@ -653,7 +653,6 @@ class Laminate:
 
         #### WORK IN PROGRESS #####
         dummy_var = cntrl_case
-
     # calculate the ply stress for a given loading condition    
     def __ply_stresses(self, N_in:list or np.array, M_in:list or np.array, V_in:list or np.array, \
         cntrl_external_actions:int = 0, T_in: int or float = 0, m_in: int or float = 0):
@@ -1074,7 +1073,7 @@ class Laminate:
 
         ply_name = 'Toray T300 - Epoxy 8552'
         ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
-        ply_stkup = [0, 90, 45, -45, -45, 45, 90, 0]
+        ply_stkup = [0, 90, 45, -45, 45, -45, 45, 90, 0, 45]
         laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
 
         laminate.calc_equivalent_properties(print_cntrl=True, method='Barbero')
@@ -1317,7 +1316,7 @@ Computation of the stress state in a point of the laminate under given external 
 
     # Example:
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
         ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
@@ -1329,7 +1328,7 @@ Computation of the stress state in a point of the laminate under given external 
     '''           
         if isinstance(N_in, list) is True:
             for i in N_in:
-                if isinstance(i, float) is False and isinstance(i, int) is False:
+                if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                     raise Exception('Error. Some elements in N_in are neither floats nor integers.')
         elif isinstance(N_in, np.ndarray) is True:
             for i in N_in:
@@ -1339,7 +1338,7 @@ Computation of the stress state in a point of the laminate under given external 
             raise Exception('Error. The input N_in must be either a list or a numpy array.')
         if isinstance(M_in, list) is True:
             for i in M_in:
-                if isinstance(i, float) is False and isinstance(i, int) is False:
+                if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                     raise Exception('Error. Some elements in M_in are neither floats nor integers.')
         elif isinstance(M_in, np.ndarray) is True:
             for i in M_in:
@@ -1355,7 +1354,7 @@ Computation of the stress state in a point of the laminate under given external 
             calc_shear = True
             if isinstance(V_in, list) is True:
                 for i in V_in:
-                    if isinstance(i, float) is False and isinstance(i, int) is False:
+                    if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                         raise Exception('Error. Some elements in V_in are neither floats nor integers.')
             elif isinstance(V_in, np.ndarray) is True:
                 for i in V_in:
@@ -1370,13 +1369,13 @@ Computation of the stress state in a point of the laminate under given external 
             calc_shear = False
             if V_in != 'None':
                 raise Exception('Error. The input V_in must be either a list or a numpy array.') 
-        if isinstance(cntrl_external_actions, int) is False:
+        if isinstance(cntrl_external_actions, int) is False or isinstance(cntrl_external_actions, bool) is True:
             raise Exception('Error. The variable cntrl_external_actions must be an integer.')
         if cntrl_external_actions != 0 and cntrl_external_actions != 1 and cntrl_external_actions != 2 and cntrl_external_actions != 3:
             raise Exception('Error. The variable "cntrl_external_actions" must be either equal to 0, 1, 2 or 3.')
-        if isinstance(T_in, float) is False and isinstance(T_in, int) is False:
+        if isinstance(T_in, float) is False and isinstance(T_in, int) is False or isinstance(T_in, bool) is True:
             raise Exception('Error. The variable T is neither a float nor an integer.')
-        if isinstance(m_in, float) is False and isinstance(m_in, int) is False:
+        if isinstance(m_in, float) is False and isinstance(m_in, int) is False or isinstance(m_in, bool) is True:
             raise Exception('Error. The variable m is neither a float nor an integer.')
         # exctraction of the stresses (saved as class properties)
         if cntrl_external_actions == 0: 
