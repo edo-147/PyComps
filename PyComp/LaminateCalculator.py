@@ -1052,7 +1052,7 @@ class Laminate:
             self.stackup_long_legend.append(['epsx_t [mm/mm]', 'epsx_c [mm/mm]', 'epsy_t [mm/mm]', 'epsy_c [mm/mm]', 'gamma_12 [mm/mm]'])
 # Callable class method (user accessible) 
     # compute the laminate equivalent properties        
-    def calc_equivalent_properties(self, print_cntrl:bool=False, method='Barbero'):
+    def calc_equivalent_properties(self, print_cntrl:bool=False, method='Barbero', disp_waring=True):
         '''
 # DESCRIPTION:
     this method is used to compute the equivalent properties of the laminate if regarded as a homogeneous object. 
@@ -1071,14 +1071,16 @@ class Laminate:
 
     # Example:
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
-        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
-        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
-        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa')
+        ply_name = 'Toray T300 - Epoxy 8552'
+        ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
+        ply_stkup = [0, 90, 45, -45, -45, 45, 90, 0]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+
         laminate.calc_equivalent_properties(print_cntrl=True, method='Barbero')
         '''  
         # internal variables are created from the class properties defined in __init__
+        
         A = self.A
         B = self.B
         D = self.D
@@ -1097,21 +1099,22 @@ class Laminate:
                 sum = sum + element ** 2
         self.rb = self.__round((3 * (A[0, 0] + A[1, 1] + A[2, 2]) * self.thickness) ** - 1 * (sum) ** .5)
 
+        if disp_waring is True:
+            if A[0, 2] > 1e-5 or A[1, 2] > 1e-5 or A[2, 0] > 1e-5 or A[2, 1] > 1e-5 : 
+                print('\033[33m', 'One or more terms between A16, A26 are different from 0.',  \
+    'The laminate is not orthotropic,', '\033[41m', 'rn = ', str(self.rn), '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the tensile-shear coupling is not considered.', '\033[37m',' ')
+                print('')
+            if D[0, 2] > 1e-5 or D[1, 2] > 1e-5 or D[2, 0] > 1e-5 or D[2, 1] > 1e-5 : 
+                print('\033[33m','One or more terms between D16, D26 are different from 0.', '\033[33m', \
+    'The laminate is not orthotropic,', '\033[41m', 'rm = ', str(self.rm), '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the general flexural-torsional coupling is not considered.', '\033[37m',' ')
+                print('')
+            if np.where(B > 1e-5)[0].shape[0] > 0: 
+                print('\033[33m','One or more terms in the B are different from 0.', '\033[33m', \
+    'The laminate is not orthotropic,', '\033[41m', 'rb = ', str(self.rb) , '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the general tensile-flexural coupling is not considered.', '\033[37m',' ')
         ## CHECKS
-        if A[0, 2] > 1e-5 or A[1, 2] > 1e-5 or A[2, 0] > 1e-5 or A[2, 1] > 1e-5 : 
-            print('\033[33m', 'One or more terms between A16, A26 are different from 0.',  \
-'The laminate is not orthotropic,', '\033[41m', 'rn = ', str(self.rn), '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the tensile-shear coupling is not considered.', '\033[37m',' ')
-            print('')
-        if D[0, 2] > 1e-5 or D[1, 2] > 1e-5 or D[2, 0] > 1e-5 or D[2, 1] > 1e-5 : 
-            print('\033[33m','One or more terms between D16, D26 are different from 0.', '\033[33m', \
-'The laminate is not orthotropic,', '\033[41m', 'rm = ', str(self.rm), '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the general flexural-torsional coupling is not considered.', '\033[37m',' ')
-            print('')
-        if np.where(B > 1e-5)[0].shape[0] > 0: 
-            print('\033[33m','One or more terms in the B are different from 0.', '\033[33m', \
-'The laminate is not orthotropic,', '\033[41m', 'rb = ', str(self.rb) , '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the general tensile-flexural coupling is not considered.', '\033[37m',' ')
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" should be a boolean.')
         if isinstance(method, str) is False:

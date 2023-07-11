@@ -71,6 +71,37 @@ class TestLamCalc(unittest.TestCase):
                 [ 0.00e+00,  0.00e+00,  0.00e+00,  0.00e+00,  0.00e+00,  9.81e-05]])
         np.testing.assert_array_equal(laminate.inv_stiff - ref_inv_stiff, np.zeros((ref_inv_stiff.shape)))
 
+    def test_calc_eq_props(self):
+        ply_name = 'Toray T300 - Epoxy 8552'
+        ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
+        ply_stkup = [0, 90, 45, -45, 45, -45, 45, 90, 0, 45]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        
+        #### inputs ####
+
+        # print_cntrl is not boolean 
+        with self.assertRaises(Exception):
+            laminate.calc_equivalent_properties(print_cntrl='Barbero', disp_waring=False)
+        # method is not a string 
+        with self.assertRaises(Exception):
+            laminate.calc_equivalent_properties(method=1, disp_waring=False)
+        # method is neither 'Barbero' nor 'ANSYS' 
+        with self.assertRaises(Exception):
+            laminate.calc_equivalent_properties(method='Wrong_input', disp_waring=False)
+
+        #### outputs ####
+        laminate.calc_equivalent_properties(method='Barbero', disp_waring=False)
+        self.assertEqual(laminate.G_flex_eq, 17301.683)
+        self.assertEqual(laminate.Ex_flex_eq, 69501.344)
+        self.assertEqual(laminate.Ey_flex_eq, 51037.942)
+        self.assertEqual(laminate.ni_flex_eq, .292)
+        self.assertEqual(laminate.G_eq, 23718.279)
+        self.assertEqual(laminate.Ex_eq, 49271.059)
+        self.assertEqual(laminate.Ey_eq, 49271.059)
+        self.assertEqual(laminate.ni_eq, .386)
+        self.assertEqual(laminate.rm, 0.0297)
+        self.assertEqual(laminate.rb, 0.00644)
+        self.assertEqual(laminate.rn, 0.0103)
 
 if __name__ == '__main__':
     unittest.main()
