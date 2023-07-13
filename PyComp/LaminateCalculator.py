@@ -159,7 +159,6 @@ class Laminate:
                         'G12': ply_block[1][6], 'G13': ply_block[1][7], 'G23': ply_block[1][8]})
                 if hide_text is False:
                     print('\033[35m', 'Assumed input elastic modulus\' units are MPa', '\033[37m',' ')
-            plies.append(ply_list_elements)
 
             # the code is already looping over the input blocks (each block is a set of same-material plies with diffrent orientations)  
             # this second loop sift through the plies in each block to store their information in dictionaries and lists
@@ -187,6 +186,7 @@ class Laminate:
                 # long version
                 stackup_list_long.append(ply_long)
         self.plies = plies
+
         # additional class propeties containing the description of the content of the former dictionaries
         self.stackup_legend = ['ply name', 'thickness [mm]', 'ply angle [deg]']
         self.stackup_long_legend = ['ply name', 'E1 [MPa]', 'E2 [MPa]', 'E3 [MPa]', 'ni12', \
@@ -198,6 +198,9 @@ class Laminate:
         # Definition of the stackup lists as class properties
         self.stackup = stackup_list
         self.stackup_long = stackup_list_long
+
+        self.__diffent_plies_list_generation()
+        self.plies = self.__updt_plies # bug fix 13/07/2023. check if the first self.plies is actually needed
 
         ## MACROMECHANICS - Now the code proceeds with the calculatin of the laminate mechanical properties
 
@@ -336,16 +339,21 @@ class Laminate:
     def __diffent_plies_list_generation(self):
         different_plies_list = []
         plies_name_list = []
+        updt_plies = []
         # two lists are created in the for loop. The first, plies_name_lists, which contains all the plies names in order. 
         # The second, different_plies_lists, contains with the name of the diffrent plies in the laminate repeated only once independently 
         # on their disposisition and their repetitions
         for i in range (len(self.stackup)):
             temp = (self.stackup[i].get('name'))
+            temp2 = self.stackup[i]
             plies_name_list.append(temp)
             if temp not in different_plies_list:
                 different_plies_list.append(temp)
-            del temp ###
+                updt_plies.append(temp2)
+            del temp 
+            del temp2
         self.__different_plies_list = different_plies_list
+        self.__updt_plies = updt_plies
     # rounds a number
     def __round(self, input:float or int, digits:int = 3, lower_limit:float = 1e-22) -> float or int: 
         '''
@@ -904,9 +912,8 @@ class Laminate:
     '''            
         # varargs = [[Xt, Xc, Yt, Yc, S12]]
         strenghts_vect = varargs[0]
-
-        self.__diffent_plies_list_generation()
-
+        self.check2 = strenghts_vect
+        self.check = self.__different_plies_list
         ## CHECKS
         # check for the input to have the same lenght as the number of different plies: the code requires the strenght of each of the different plies  
         # in the laminate. In seek of clarity, if the laminate is composed by 3 blocks of different materials
@@ -988,8 +995,6 @@ class Laminate:
     '''            
         # varargs = [epsx_t, epsx_c, epsy_t, epsy_c, gamma_12]
         strains_vect = varargs[0]
-
-        self.__diffent_plies_list_generation()
 
         ## CHECKgamma_
         # check for the input to have the same lenght as the number of different plies: the code requires the strenght of each of the different plies  
@@ -1689,8 +1694,8 @@ Computation of the stress state in a point of the laminate under given external 
                         # accessible only if print is "True"
     # perform the FPF structural verification of the laminate
     def FPF(self, *varargs:list[list or np.ndarray], N_in:list or np.array, M_in:list or np.array, \
-        print_stress_state:bool = False, V_in:str or np.array='None', criteria:str='TsaiWu', F12:float or int="-.5/FxtFxcFytFyc_max**2", \
-            print_margins:bool = False, cntrl_external_actions:int = 0, T_in:int or float = 0, m_in:int or float = 0):
+        print_stress_state:bool=False, V_in:str or np.array='None', criteria:str='TsaiWu', F12:float or int="-.5/(FxtFxcFytFyc)**.5", \
+            print_margins:bool=False, cntrl_external_actions:int=0, T_in:int or float=0, m_in:int or float=0):
         '''
 # DESCRIPTION:
 this method is used verify the stackup and to identify the first failing ply in the laminate. 
@@ -1792,7 +1797,7 @@ this method is used verify the stackup and to identify the first failing ply in 
         else:
             if V_in != 'None':
                 raise Exception('Error. The input V_in must be either a list or a numpy array.')       
-        if F12 != "-.5/FxtFxcFytFyc_max**2":
+        if F12 != "-.5/(FxtFxcFytFyc)**.5":
             if isinstance(F12, float) is False and isinstance(F12, int) is False:
                 raise Exception('Error. The input F12 must be either a float or an integer.')
         if isinstance(print_margins, bool) is False:

@@ -190,5 +190,77 @@ class TestLamCalc(unittest.TestCase):
         gamma_out_2_ref = np.array([0, 0.00039])
         np.testing.assert_array_equal(np.round(laminate.gamma_out[2], 5), gamma_out_2_ref)
 
+    def test_FPF_inputs(self):
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
+        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        N = [230, .10, -2.5]
+        M = [-160, .012, -0.3]
+        V = [.0005, 3.5]       
+        strght = [414, 414 * .5, 414, 414 * .5, 81.41, 40, 40]
+        strain = [1/100, .5/100, 1/100, .5/100, 5/100, 5/100, 5/100]
+
+
+        # N is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, 'N', M, V, criteria='TsaiWu')
+        # M is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, 'M', V, criteria='TsaiWu')
+        # V is not a list nor a numpy array
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, 'V', criteria='TsaiWu')
+        
+        # N is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, [230, '.10', -2.5], M, V, criteria='TsaiWu')
+        # M is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, [-160, '.012', -0.3], V, criteria='TsaiWu')
+        # V is a list and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, [.0005, '3.5'], criteria='TsaiWu')
+        
+        # N is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, np.array([230, '.10', -2.5]), M, V, criteria='TsaiWu')
+        # M is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, np.array([-160, '.012', -0.3]), V, criteria='TsaiWu')
+        # V is an array and its elemnts are neither float nor int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, np.array([.0005, '3.5']), criteria='TsaiWu')
+
+        # N has the wrong length
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, [230, -2.5], M, V, criteria='TsaiWu')
+        # M has the wrong length
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, [-160, -0.3], V, criteria='TsaiWu')
+        # V has the wrong length
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, [.0005], criteria='TsaiWu')
+
+        # criteria is not one of the available ('MaxStress', 'MaxStrain' or 'TsaiWu')
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, V, criteria='wrongCriteria', cntrl_external_actions='2')
+
+        # cntr_external_actions is not an int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, V, criteria='TsaiWu', cntrl_external_actions='2')
+        # cntr_external_actions is not 0, 1, 2 or 3
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, V, criteria='TsaiWu', cntrl_external_actions=4)
+        # T_in is nor a float an int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, V, criteria='TsaiWu', T_in='1')
+        # m_in is nor a float an int
+        with self.assertRaises(Exception):
+            laminate.FPF(strght, N, M, V, criteria='TsaiWu', m_in='0')
+    
+
+
+
 if __name__ == '__main__':
     unittest.main()
