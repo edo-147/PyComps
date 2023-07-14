@@ -202,6 +202,38 @@ class TestLamCalc(unittest.TestCase):
         strain = [1/100, .5/100, 1/100, .5/100, 5/100, 5/100, 5/100]
 
 
+        # one of the strength vector elements is not a int nor a float
+        with self.assertRaises(Exception):
+            laminate.FPF([414, 414 * .5, 414, 414 * .5, 81.41, 40, '40'], N, M, V, criteria='TsaiWu')
+        # strength vector length is wrong
+        with self.assertRaises(Exception):
+            laminate.FPF([414, 414 * .5, 414, 414 * .5, 81.41, 40], N, M, V, criteria='TsaiWu')
+        # strength vector length is wrong
+        with self.assertRaises(Exception):
+            laminate.FPF([414, 414 * .5, 414, 414 * .5], N, M, criteria='TsaiWu')
+
+        # two strength vectors are expected but one is provided
+        with self.assertRaises(Exception):
+            laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], ['ply_name', ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+            laminate.FPF(strght, N, M, criteria='TsaiWu')
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+
+        # one of the strain vector elements is not a int nor a float
+        with self.assertRaises(Exception):
+            laminate.FPF([1/100, .5/100, 1/100, .5/100, 5/100, 5/100, '5/100'], N, M, V, criteria='MaxStrain')
+        # strain vector length is wrong
+        with self.assertRaises(Exception):
+            laminate.FPF([1/100, .5/100, 1/100, .5/100, 5/100, 5/100], N, M, V, criteria='MaxStrain')
+        # strain vector length is wrong
+        with self.assertRaises(Exception):
+            laminate.FPF([1/100, .5/100, 1/100, .5/100], N, M, criteria='MaxStrain')
+
+        # two strength vectors are expected but one is provided
+        with self.assertRaises(Exception):
+            laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], ['ply_name', ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+            laminate.FPF(strain, N, M, criteria='MaxStrain')
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+
         # N is not a list nor a numpy array
         with self.assertRaises(Exception):
             laminate.FPF(strght, 'N', M, V, criteria='TsaiWu')
