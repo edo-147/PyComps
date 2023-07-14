@@ -110,7 +110,6 @@ class Laminate:
         for i, ply_block in enumerate(blocks):
 
             ## CHECKS
-
             # The function check that the data were provided in the correct format [name, mech_props, orientations]
             if len(ply_block) != 3:
                 raise Exception('Error in ply_block no. '+ str(i + 1) \
@@ -912,8 +911,6 @@ class Laminate:
     '''            
         # varargs = [[Xt, Xc, Yt, Yc, S12]]
         strenghts_vect = varargs[0]
-        self.check2 = strenghts_vect
-        self.check = self.__different_plies_list
         ## CHECKS
         # check for the input to have the same lenght as the number of different plies: the code requires the strenght of each of the different plies  
         # in the laminate. In seek of clarity, if the laminate is composed by 3 blocks of different materials
@@ -1821,14 +1818,14 @@ this method is used verify the stackup and to identify the first failing ply in 
         
         if criteria == 'TsaiWu' or criteria == 'MaxStress':
             # internal method which check, extract and store the plies' max strenght data
-            self.__add_max_strenght_properties(varargs[0], cntrl_shear=cntrl_shear)
+            self.__add_max_strenght_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
             print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
             print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
             print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
         else:
             # internal method which check, extract and store the plies' max strain data
-            self.__add_max_strain_properties(varargs[0], cntrl_shear=cntrl_shear)
+            self.__add_max_strain_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
             print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
             print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
@@ -2069,7 +2066,7 @@ this method is used verify the stackup and to identify the first failing ply in 
                 if cntrl_shear is True:
                     F44 = 1 / (S23) ** 2
                     F55 = 1 / (S13) ** 2
-                if F12 != "-.5/FxtFxcFytFyc_max**2":
+                if F12 != "-.5/(FxtFxcFytFyc)**.5":
                     F12 = F12
                 else:
                     # F12 = -.5 / Xt ** 2
