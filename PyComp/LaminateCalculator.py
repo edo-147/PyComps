@@ -1935,9 +1935,11 @@ this method is used verify the stackup and to identify the first failing ply in 
             else: 
                 print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
+            # if print_margins is True:
+            #     print(' ')
+            #     print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')
             if print_margins is True:
-                print(' ')
-                print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')
+                self.print_margins()
         ###########################################################
         # Maximum strain criteria
         if criteria == 'MaxStrain':
@@ -2023,9 +2025,11 @@ this method is used verify the stackup and to identify the first failing ply in 
             else: 
                 print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
+            # if print_margins is True:
+            #     print(' ')
+            #     print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')   
             if print_margins is True:
-                print(' ')
-                print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')   
+                self.print_margins()
         ###########################################################
         # Tsai-Wu criteria
         if criteria == 'TsaiWu':
