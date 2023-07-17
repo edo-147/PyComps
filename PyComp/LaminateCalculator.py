@@ -1153,8 +1153,8 @@ class Laminate:
             self.G_eq = 1 / a_star[2, 2]
             # self.ni_eq = self.__round(A[0, 1] / A[1, 1])
 
-            self.G23_eq = h_star[0, 0] 
-            self.G13_eq = h_star[1, 1] 
+            self.G23_eq = 1 / h_star[0, 0] 
+            self.G13_eq = 1 / h_star[1, 1] 
             
             self.Ex_flex_eq = 1 / d_star[0, 0]
             self.Ey_flex_eq = 1 / d_star[1, 1]
