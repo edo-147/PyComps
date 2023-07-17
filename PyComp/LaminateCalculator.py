@@ -1692,7 +1692,7 @@ Computation of the stress state in a point of the laminate under given external 
     # perform the FPF structural verification of the laminate
     def FPF(self, *varargs:list[list or np.ndarray], N_in:list or np.array, M_in:list or np.array, \
         print_stress_state:bool=False, V_in:str or np.array='None', criteria:str='TsaiWu', F12:float or int="-.5/(FxtFxcFytFyc)**.5", \
-            print_margins:bool=False, cntrl_external_actions:int=0, T_in:int or float=0, m_in:int or float=0):
+            print_margins:bool=False, cntrl_external_actions:int=0, T_in:int or float=0, m_in:int or float=0, hide_text:bool=False):
         '''
 # DESCRIPTION:
 this method is used verify the stackup and to identify the first failing ply in the laminate. 
@@ -1816,20 +1816,22 @@ this method is used verify the stackup and to identify the first failing ply in 
             print_stress_state2 = False
             cntrl_shear = False
         
-        if criteria == 'TsaiWu' or criteria == 'MaxStress':
+        if criteria == 'TsaiWu' or criteria == 'MaxStress' :
             # internal method which check, extract and store the plies' max strenght data
             self.__add_max_strenght_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
-            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            if hide_text is False:
+                print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
+                print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+                print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
         else:
             # internal method which check, extract and store the plies' max strain data
             self.__add_max_strain_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
-            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            if hide_text is False:
+                print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
+                print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+                print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
 
         self.criteria = criteria
 
@@ -1923,17 +1925,18 @@ this method is used verify the stackup and to identify the first failing ply in 
             # same operation for the top
             check_top = np.where(self.margin_top <= 0)
             # if there are such values
-            print(' ')
-            if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
-                # for each of those plies display the following warning
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
-                        ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')          
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
-                        ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+            if hide_text is False:
+                print(' ')
+                if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
+                    # for each of those plies display the following warning
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
+                            ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')          
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
+                            ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
             # if print_margins is True:
             #     print(' ')
@@ -2013,17 +2016,18 @@ this method is used verify the stackup and to identify the first failing ply in 
             # same operation for the top
             check_top = np.where(self.margin_top <= 0)
             # if there are such values
-            print(' ')
-            if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
-                # for each of those plies display the following warning
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
-                        ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')          
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
-                        ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+            if hide_text is False:
+                print(' ')
+                if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
+                    # for each of those plies display the following warning
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
+                            ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')          
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
+                            ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
             # if print_margins is True:
             #     print(' ')
@@ -2157,17 +2161,18 @@ this method is used verify the stackup and to identify the first failing ply in 
             check_top = np.where(self.margin_top < 0)
             check_bot = np.where(self.margin_bot < 0)
 
-            # if any of the top plies fails display a message  
-            print(' ')
-            if len(np.where(self.margin_top < 0)[0]) != 0 or len(np.where(self.margin_bot < 0)[0]) != 0:
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
-            # if any of the bot plies fails display a message  
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
-            # if none of the plies fails display a message  
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+            # if any of the top plies fails display a message              
+            if hide_text is False:
+                print(' ')
+                if len(np.where(self.margin_top < 0)[0]) != 0 or len(np.where(self.margin_bot < 0)[0]) != 0:
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
+                # if any of the bot plies fails display a message  
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
+                # if none of the plies fails display a message  
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
             # print margins or not depending on the optional control variable
             if print_margins is True:

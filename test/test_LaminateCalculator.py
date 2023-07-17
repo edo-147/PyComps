@@ -290,9 +290,28 @@ class TestLamCalc(unittest.TestCase):
         # m_in is nor a float an int
         with self.assertRaises(Exception):
             laminate.FPF(strght, N, M, V, criteria='TsaiWu', m_in='0')
-    
 
+    def test_FPF_outputs(self):
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
+        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
+        strght = [414, 414 * .5, 414, 414 * .5, 81.41, 40, 40]
+        strain = [1/100, .5/100, 1/100, .5/100, 5/100, 5/100, 5/100]
 
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+        N = [230, .10, -2.5]
+        M = [-160, .012, -0.3]
+        V = [.5, 3.5]
+        laminate.FPF(strght, N_in=N, M_in=M, V_in=V, hide_text=True)
 
+        margin_bot_ref = np.array([-0.124,  2.457,  0.24 ,  4.449,  6.612,  2.255, 22.244,  5.288])
+        np.testing.assert_array_equal(np.round(laminate.margin_bot, 3), margin_bot_ref)
+
+        reserve_factor_top_ref = np.array([ 1.027,  4.234,  1.564,  7.612, 12.398,  6.784,  6.769,  2.31 ])
+        np.testing.assert_array_equal(np.round(laminate.reserve_factor_top, 3), reserve_factor_top_ref)
+
+        inv_reserve_factor_avrg_ref = np.array([1.057, 0.263, 0.723, 0.157, 0.106, 0.226, 0.073, 0.292])
+        np.testing.assert_array_equal(np.round(laminate.average_inv_reserve_factor, 3), inv_reserve_factor_avrg_ref)
+        
 if __name__ == '__main__':
     unittest.main()
