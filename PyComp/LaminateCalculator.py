@@ -2167,7 +2167,7 @@ this method is used verify the stackup and to identify the first failing ply in 
 
             # print margins or not depending on the optional control variable
             if print_margins is True:
-                self.print_margins_TsaiWu()
+                self.print_margins()
     # print the margins from a Tsai Wu verification (FPF required)
     def print_margins(self):
         '''
