@@ -1459,6 +1459,7 @@ Computation of the stress state in a point of the laminate under given external 
         self.def_out_percent = def_temp * 100
 
         if print is True: ## new
+            direction = ['x', 'y', 'xy']
 
             # loop over the three directions (sigma1, sigma2, and shear)
             for i in range(3) :
@@ -1469,21 +1470,29 @@ Computation of the stress state in a point of the laminate under given external 
                 fig, ax = plt.subplots(1, 2)
                 if title != 'None':
                     fig.suptitle(title, fontsize = font_title)
-                ax[0].axhline(0, color = 'red')
-                ax[1].axhline(0, color = 'red')
+                ax[0].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
+                ax[1].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
 
                 for kk in range(len(self.stackup)):
                     # horizontal lines to indicate the plies  
-                    ax[0].axhline(ply_top_coord[kk], color = 'red')
-                    ax[1].axhline(ply_top_coord[kk], color = 'red')
+                    ax[0].axhline(ply_top_coord[kk], color = 'black',  linestyle='--', linewidth='.7')
+                    ax[1].axhline(ply_top_coord[kk], color = 'black',  linestyle='--', linewidth='.7')
                     #x_coord0 = min(deformation) - max(deformation) / 100
                     #x_coord1 = min(sigma[:, i]) - max(sigma[:, i]) / 100
 
                 # plots 
                 ax[1].plot(sigma[:, i], zed)
-                ax[1].set_title('sigma' + str(i + 1), fontsize = font1) 
+                if i == 0 or i == 1:
+                    ax[1].set_title('$\sigma_{' + direction[i] + '}$', fontsize = font1) 
+                else:
+                    ax[1].set_title('$\\tau_{' + direction[i] + '}$', fontsize = font1) 
+
                 ax[0].plot(deformation_precent, zed)
-                ax[0].set_title('epsilon' + str(i + 1), fontsize = font1)
+                if i == 0 or i == 1:
+                    ax[0].set_title('$\epsilon_{' + direction[i]  + '}$', fontsize = font1)
+                else:
+                    ax[0].set_title('$\gamma_{' + direction[i]  + '}$', fontsize = font1)
+
                 ax[1].set_xlabel('Stress [MPa]', fontsize = font2)
                 #ax[1].set_ylabel('z [mm]')
                 ax[0].set_xlabel('Deformation [%]', fontsize = font2)
@@ -1600,8 +1609,8 @@ Computation of the stress state in a point of the laminate under given external 
                 fig, ax = plt.subplots(1, 2)
                 if title != 'None':
                     fig.suptitle(title, fontsize = font_title)
-                ax[0].axhline(0, color = 'red')
-                ax[1].axhline(0, color = 'red')
+                ax[0].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
+                ax[1].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
 
                 # loop over the plies  
                 for j in range(len(self.stackup)) :
@@ -1609,18 +1618,18 @@ Computation of the stress state in a point of the laminate under given external 
                     # top abscissa of each ply
                     ply_top_coord = sum(self.thickness_vector[:j + 1]) 
                     # horizontal lines to indicate the plies  
-                    ax[0].axhline(ply_top_coord, color = 'red')
-                    ax[1].axhline(ply_top_coord, color = 'red')
+                    ax[0].axhline(ply_top_coord, color = 'black',  linestyle='--', linewidth='.7')
+                    ax[1].axhline(ply_top_coord, color = 'black',  linestyle='--', linewidth='.7')
 
                 gamma_precent = gamma_out[:, i] * 100
 
                 # plots 
                 if i == 0:
-                    ax[1].set_title('tau xz', fontsize = font1) 
-                    ax[0].set_title('gamma xz', fontsize = font1)
+                    ax[1].set_title('$\\tau_{xz}$', fontsize = font1) 
+                    ax[0].set_title('$\gamma_{xz}$', fontsize = font1)
                 elif i == 1:
-                    ax[1].set_title('tau yz', fontsize = font1) 
-                    ax[0].set_title('gamma yz', fontsize = font1)
+                    ax[1].set_title('$\\tau_{yz}$', fontsize = font1) 
+                    ax[0].set_title('$\gamma_{yz}$', fontsize = font1)
                 ax[1].plot(tau[:, i], zed)
                 ax[0].plot(gamma_precent, zed)
                 ax[1].set_xlabel('Stress [MPa]', fontsize = font2)
