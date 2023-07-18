@@ -10,14 +10,14 @@ The program implements both the micro and meso/macro mechanics in the classes *"
 Class methods allow different operations. 
 
 **Meso/Macromechanics**: creates a laminate object starting from the plies properties and stack-up information.  
-Features: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 - calculation of the laminate **stiffness matrix**
 - estimation of **equivalent** tensile and flexural **orthotropic** mechanical **properties**. 
 - **ply-by-ply stress** analysis in accordance with CLT or FSDT. 
 - Failure verification with **maximum stress**, **maximum strain** and **Tsai-Wu** criteria
 
 **Micromechanics features**: manipulation of ply objects generated from the constituents properties and mass or volume fractions. 
-Features:
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 - calculation of **ply mechanical properties** starting from that of isotropic constituents.
 - the former can be attained with of different methods: **ROM**, **Halpin-Tsai**, or **PMM**
 - **cured ply thickness** estimation
