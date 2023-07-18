@@ -313,5 +313,17 @@ class TestLamCalc(unittest.TestCase):
         inv_reserve_factor_avrg_ref = np.array([1.057, 0.263, 0.723, 0.157, 0.106, 0.226, 0.073, 0.292])
         np.testing.assert_array_equal(np.round(laminate.average_inv_reserve_factor, 3), inv_reserve_factor_avrg_ref)
         
+    def test_print_lam_stifness_matrix(self):
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
+        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+
+        with self.assertRaises(Exception):
+            laminate.print_lam_stifness_matrix(self, FSDT='yes')
+
+        with self.assertRaises(Exception):
+            laminate.print_lam_stifness_matrix(self, FSDT=0)
+
 if __name__ == '__main__':
     unittest.main()
