@@ -184,11 +184,11 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
         self.ni21 = self.ni12 * self.E2 / self.E1
         self.ni31 = self.ni21
         self.ni32 = self.ni23
-        print('\033[35m','Note: The value "ni23" and "G23" are not computed but set to the matrix value. \n For a more precise value use another method.')
+        print('\033[35m','Note: "ni23" and "G23" are not computed but set to the matrix value. \n For precise values please use another method.')
         print('\033[37m',' ')
 
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
 
         if print_cntrl is True: 
             self.print_properties()
@@ -264,10 +264,10 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
         self.ni31 = self.ni21
         self.ni32 = self.ni23
         
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness,csi_G]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
         
-        print('\033[35m','Note: The value "ni23" is not computed but set equal to ni12. \n For a more precise value use another method.')
+        print('\033[35m','Note: "ni23" is not computed but set equal to ni12. \n For a more precise value please use another method.')
         print('\033[37m',' ')
 
         if print_cntrl is True: 
@@ -349,8 +349,9 @@ Following the Periodic Microstructure Model method, the method computes ply equi
         self.G23 = (C22/4) - (C23/4) + (C44/2)
 
 
-        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni13, \
-                           self.ni23, self.G12, self.G13, self.G23, self.rho, self.cured_thickness]
+        self.mech_props = [self.name, self.E1, self.E2, self.E3, self.ni12, self.ni23, \
+                           self.ni13, self.G12, self.G23, self.G13, self.rho, self.cured_thickness]
+        
         if print_cntrl is True: 
             self.print_properties()
 
@@ -404,14 +405,14 @@ Print ply properties
         print('Ply thickness = ', str(np.round(self.cured_thickness, 4)), ' mm')
 
     def error_percent(self, data: list[float or int] or np.ndarray[float or int], print_cntrl:bool= False):
-        '''
+        ''''
 # DESCRIPTION:
 Compute the error percent between the computed ply properties and those from an external model
 # INPUTS:
     Required
-    - None
+    - data_in: vector of material data for comparison. Expected format is: [E1, E2, E3, ni12, ni23, ni13, G12, G23, G13, rho]
     Optional   
-    
+    - print_cntrl, if "True" prints the % error. Default is false.
 # OUTPUTS: 
     - None
 
@@ -432,9 +433,8 @@ Compute the error percent between the computed ply properties and those from an 
 
     '''
 
-        print('\033[35m', 'Note: \n')
-        print('Elastic properties units are in GPa')
-        print('Density units are in kg/m^3', '\033[37m')
+        print('\033[35m', 'Note: Elastic properties units are in GPa.')
+        print('Density units are in kg/m^3.', '\033[37m')
 
         if isinstance(data, list) is False and isinstance(data, np.ndarray) is False:
             raise Exception('Input data must be either a list or a numpy array.')
@@ -458,16 +458,15 @@ Compute the error percent between the computed ply properties and those from an 
         self.error_percent_E2 = np.abs((data[1] - self.E2)) / data[1] * 100
         self.error_percent_E3 = np.abs((data[2] - self.E3)) / data[2] * 100
         self.error_percent_ni12 = np.abs((data[3] - self.ni12)) / data[3] * 100
-        self.error_percent_ni13 = np.abs((data[4] - self.ni13)) / data[4] * 100
         if self.ni23 == 'NA':
             self.error_percent_ni23 = 'NA'
         else:
-            self.error_percent_ni23 = np.abs((data[5] - self.ni23)) /data[8]
+            self.error_percent_ni23 = np.abs((data[4] - self.ni23)) / data[4] * 100
+        self.error_percent_ni13 = np.abs((data[5] - self.ni13)) / data[5] * 100
         self.error_percent_G12 = np.abs((data[6] - self.G12)) / data[6] * 100
         self.error_percent_G23 = np.abs((data[7] - self.G23)) / data[7] * 100
         self.error_percent_G13 = np.abs((data[8] - self.G13)) / data[8] * 100
         self.error_percent_rho = np.abs((data[9] - self.rho)) / data[9] * 100
-
 
         self.error_E1 = self.error_percent_E1 / 100 
         self.error_E2 = self.error_percent_E2 / 100 
@@ -484,23 +483,21 @@ Compute the error percent between the computed ply properties and those from an 
         self.error_rho = self.error_percent_rho / 100
 
         self.errors = [self.error_E1, self.error_E2, self.error_E3, self.error_G12, \
-                       self.error_G23, self.error_G13, self.error_ni12, self.error_ni13, self.error_ni23, self.error_rho]
+                       self.error_G23, self.error_G13, self.error_ni12, self.error_ni23, self.error_ni13, self.error_rho]
         self.errors_percent = [self.error_percent_E1, self.error_percent_E2, self.error_percent_E3, \
                                self.error_percent_G12, self.error_percent_G23, self.error_percent_G13, \
-                                self.error_percent_ni12, self.error_percent_ni13]
+                                self.error_percent_ni12, self.error_percent_ni23, self.error_percent_ni13]
         if print_cntrl is True:
             print('error E1 % = ', str(np.round(self.error_percent_E1, 4)))
             print('error E2 % = ', str(np.round(self.error_percent_E2, 4)))
             print('error E3 % = ', str(np.round(self.error_percent_E3, 4)))
             print('error ni12 % = ', str(np.round(self.error_percent_ni12, 4)))    
-            print('error ni13 % = ', str(np.round(self.error_percent_ni13, 4)))
             if self.ni23 != 'NA':
                 print('error ni23 % = ', str(np.round(self.error_percent_ni23, 4)))
             else: 
                 print('error ni23 %  = NA')
+            print('error ni13 % = ', str(np.round(self.error_percent_ni13, 4)))
             print('error G12 % = ', str(np.round(self.error_percent_G12, 4)))
             print('error G23 % = ', str(np.round(self.error_percent_G23, 4)))
             print('error G13 % = ', str(np.round(self.error_percent_G13, 4)))
             print('error rho % = ', str(np.round(self.error_percent_rho, 4)))
-
-

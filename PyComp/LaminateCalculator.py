@@ -19,7 +19,7 @@ class Laminate:
 
 '''
 # Initialization method 
-    def __init__(self, *varargs:list[str, list or np.ndarray, list or np.ndarray], mech_prop_units:str='GPa'):
+    def __init__(self, *varargs:list[str, list or np.ndarray, list or np.ndarray], mech_prop_units:str='GPa', hide_text:bool=False):
         '''
 # DESCRIPTION:
     In the init method the single plies are defined and their properties exctracted 
@@ -82,7 +82,7 @@ class Laminate:
     # Example:
 
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
         ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
@@ -91,9 +91,10 @@ class Laminate:
 
     '''         
         # USER WARNINGS        
-        print('\033[35m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
-        print('\033[35m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
-        print('\033[35m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
+        if hide_text is False:
+            print('\033[35m', 'Assumed input density\'s units are kg/m3', '\033[37m',' ')
+            print('\033[35m', 'Assumed input ply thickness\' units are mm', '\033[37m',' ')
+            print('\033[35m', 'Assumed input angle\'s units are degs', '\033[37m',' ')
 
         if mech_prop_units != 'MPa' and mech_prop_units != 'GPa' :
             raise Exception('The variable "mech_prop_units" must be either equal to "MPa" or to "GPa".')
@@ -109,7 +110,6 @@ class Laminate:
         for i, ply_block in enumerate(blocks):
 
             ## CHECKS
-
             # The function check that the data were provided in the correct format [name, mech_props, orientations]
             if len(ply_block) != 3:
                 raise Exception('Error in ply_block no. '+ str(i + 1) \
@@ -149,14 +149,15 @@ class Laminate:
             ply_list_elements = {'name': ply_block[0], 'ni12': ply_block[1][3], 'ni13': ply_block[1][4], 'ni23': ply_block[1][5], \
                         'density': ply_block[1][9], 'thickness': ply_block[1][10]}
             if mech_prop_units == 'GPa':
-                print('\033[35m', 'Assumed input mechanical properties\' units are GPa', '\033[37m',' ')
+                if hide_text is False:
+                    print('\033[35m', 'Assumed input elastic modulus\' units are GPa', '\033[37m',' ')
                 ply_list_elements.update({ 'E1': ply_block[1][0] * 1000, 'E2': ply_block[1][1] * 1000, 'E3': ply_block[1][2] * 1000,\
                         'G12': ply_block[1][6] * 1000, 'G13': ply_block[1][7] * 1000, 'G23': ply_block[1][8] * 1000})
             else:
                 ply_list_elements.update({'E1': ply_block[1][0], 'E2': ply_block[1][1], 'E3': ply_block[1][2],\
                         'G12': ply_block[1][6], 'G13': ply_block[1][7], 'G23': ply_block[1][8]})
-                print('\033[35m', 'Assumed input mechanical properties\' units are MPa', '\033[37m',' ')
-            plies.append(ply_list_elements)
+                if hide_text is False:
+                    print('\033[35m', 'Assumed input elastic modulus\' units are MPa', '\033[37m',' ')
 
             # the code is already looping over the input blocks (each block is a set of same-material plies with diffrent orientations)  
             # this second loop sift through the plies in each block to store their information in dictionaries and lists
@@ -184,6 +185,7 @@ class Laminate:
                 # long version
                 stackup_list_long.append(ply_long)
         self.plies = plies
+
         # additional class propeties containing the description of the content of the former dictionaries
         self.stackup_legend = ['ply name', 'thickness [mm]', 'ply angle [deg]']
         self.stackup_long_legend = ['ply name', 'E1 [MPa]', 'E2 [MPa]', 'E3 [MPa]', 'ni12', \
@@ -195,6 +197,9 @@ class Laminate:
         # Definition of the stackup lists as class properties
         self.stackup = stackup_list
         self.stackup_long = stackup_list_long
+
+        self.__diffent_plies_list_generation()
+        self.plies = self.__updt_plies # bug fix 13/07/2023. check if the first self.plies is actually needed
 
         ## MACROMECHANICS - Now the code proceeds with the calculatin of the laminate mechanical properties
 
@@ -333,16 +338,21 @@ class Laminate:
     def __diffent_plies_list_generation(self):
         different_plies_list = []
         plies_name_list = []
+        updt_plies = []
         # two lists are created in the for loop. The first, plies_name_lists, which contains all the plies names in order. 
         # The second, different_plies_lists, contains with the name of the diffrent plies in the laminate repeated only once independently 
         # on their disposisition and their repetitions
         for i in range (len(self.stackup)):
             temp = (self.stackup[i].get('name'))
+            temp2 = self.stackup[i]
             plies_name_list.append(temp)
             if temp not in different_plies_list:
                 different_plies_list.append(temp)
-            del temp ###
+                updt_plies.append(temp2)
+            del temp 
+            del temp2
         self.__different_plies_list = different_plies_list
+        self.__updt_plies = updt_plies
     # rounds a number
     def __round(self, input:float or int, digits:int = 3, lower_limit:float = 1e-22) -> float or int: 
         '''
@@ -650,7 +660,6 @@ class Laminate:
 
         #### WORK IN PROGRESS #####
         dummy_var = cntrl_case
-
     # calculate the ply stress for a given loading condition    
     def __ply_stresses(self, N_in:list or np.array, M_in:list or np.array, V_in:list or np.array, \
         cntrl_external_actions:int = 0, T_in: int or float = 0, m_in: int or float = 0):
@@ -902,9 +911,6 @@ class Laminate:
     '''            
         # varargs = [[Xt, Xc, Yt, Yc, S12]]
         strenghts_vect = varargs[0]
-
-        self.__diffent_plies_list_generation()
-
         ## CHECKS
         # check for the input to have the same lenght as the number of different plies: the code requires the strenght of each of the different plies  
         # in the laminate. In seek of clarity, if the laminate is composed by 3 blocks of different materials
@@ -987,8 +993,6 @@ class Laminate:
         # varargs = [epsx_t, epsx_c, epsy_t, epsy_c, gamma_12]
         strains_vect = varargs[0]
 
-        self.__diffent_plies_list_generation()
-
         ## CHECKgamma_
         # check for the input to have the same lenght as the number of different plies: the code requires the strenght of each of the different plies  
         # in the laminate. In seek of clarity, if the laminate is composed by 3 blocks of different materials
@@ -1049,7 +1053,7 @@ class Laminate:
             self.stackup_long_legend.append(['epsx_t [mm/mm]', 'epsx_c [mm/mm]', 'epsy_t [mm/mm]', 'epsy_c [mm/mm]', 'gamma_12 [mm/mm]'])
 # Callable class method (user accessible) 
     # compute the laminate equivalent properties        
-    def calc_equivalent_properties(self, print_cntrl:bool=False, method='Barbero'):
+    def calc_equivalent_properties(self, print_cntrl:bool=False, method='Barbero', disp_waring=True):
         '''
 # DESCRIPTION:
     this method is used to compute the equivalent properties of the laminate if regarded as a homogeneous object. 
@@ -1068,14 +1072,16 @@ class Laminate:
 
     # Example:
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
-        ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
-        ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
-        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa')
+        ply_name = 'Toray T300 - Epoxy 8552'
+        ply_mech_props = [133.15, 16.931, 16.931, .264, .4361, .264, 5.8944, 5.7868, 5.8944, 1556.9, .275]
+        ply_stkup = [0, 90, 45, -45, 45, -45, 45, 90, 0, 45]
+        laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
+
         laminate.calc_equivalent_properties(print_cntrl=True, method='Barbero')
         '''  
         # internal variables are created from the class properties defined in __init__
+        
         A = self.A
         B = self.B
         D = self.D
@@ -1094,21 +1100,22 @@ class Laminate:
                 sum = sum + element ** 2
         self.rb = self.__round((3 * (A[0, 0] + A[1, 1] + A[2, 2]) * self.thickness) ** - 1 * (sum) ** .5)
 
+        if disp_waring is True:
+            if A[0, 2] > 1e-5 or A[1, 2] > 1e-5 or A[2, 0] > 1e-5 or A[2, 1] > 1e-5 : 
+                print('\033[33m', 'One or more terms between A16, A26 are different from 0.',  \
+    'The laminate is not orthotropic,', '\033[41m', 'rn = ', str(self.rn), '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the tensile-shear coupling is not considered.', '\033[37m',' ')
+                print('')
+            if D[0, 2] > 1e-5 or D[1, 2] > 1e-5 or D[2, 0] > 1e-5 or D[2, 1] > 1e-5 : 
+                print('\033[33m','One or more terms between D16, D26 are different from 0.', '\033[33m', \
+    'The laminate is not orthotropic,', '\033[41m', 'rm = ', str(self.rm), '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the general flexural-torsional coupling is not considered.', '\033[37m',' ')
+                print('')
+            if np.where(B > 1e-5)[0].shape[0] > 0: 
+                print('\033[33m','One or more terms in the B are different from 0.', '\033[33m', \
+    'The laminate is not orthotropic,', '\033[41m', 'rb = ', str(self.rb) , '\033[49m', '. Check the resuls carefully: \
+    equivalent properties are computed but the general tensile-flexural coupling is not considered.', '\033[37m',' ')
         ## CHECKS
-        if A[0, 2] > 1e-5 or A[1, 2] > 1e-5 or A[2, 0] > 1e-5 or A[2, 1] > 1e-5 : 
-            print('\033[33m', 'One or more terms between A16, A26 are different from 0.',  \
-'The laminate is not orthotropic,', '\033[41m', 'rn = ', str(self.rn), '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the tensile-shear coupling is not considered.', '\033[37m',' ')
-            print('')
-        if D[0, 2] > 1e-5 or D[1, 2] > 1e-5 or D[2, 0] > 1e-5 or D[2, 1] > 1e-5 : 
-            print('\033[33m','One or more terms between D16, D26 are different from 0.', '\033[33m', \
-'The laminate is not orthotropic,', '\033[41m', 'rm = ', str(self.rm), '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the general flexural-torsional coupling is not considered.', '\033[37m',' ')
-            print('')
-        if np.where(B > 1e-5)[0].shape[0] > 0: 
-            print('\033[33m','One or more terms in the B are different from 0.', '\033[33m', \
-'The laminate is not orthotropic,', '\033[41m', 'rb = ', str(self.rb) , '\033[49m', '. Check the resuls carefully: \
-equivalent properties are computed but the general tensile-flexural coupling is not considered.', '\033[37m',' ')
         if isinstance(print_cntrl, bool) is False:
             raise Exception('Error. The variable "print_cntrl" should be a boolean.')
         if isinstance(method, str) is False:
@@ -1146,8 +1153,8 @@ equivalent properties are computed but the general tensile-flexural coupling is 
             self.G_eq = 1 / a_star[2, 2]
             # self.ni_eq = self.__round(A[0, 1] / A[1, 1])
 
-            self.G23_eq = h_star[0, 0] 
-            self.G13_eq = h_star[1, 1] 
+            self.G23_eq = 1 / h_star[0, 0] 
+            self.G13_eq = 1 / h_star[1, 1] 
             
             self.Ex_flex_eq = 1 / d_star[0, 0]
             self.Ey_flex_eq = 1 / d_star[1, 1]
@@ -1311,7 +1318,7 @@ Computation of the stress state in a point of the laminate under given external 
 
     # Example:
         import PyComp as comp
-        ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
+        ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
         ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
 
@@ -1323,7 +1330,7 @@ Computation of the stress state in a point of the laminate under given external 
     '''           
         if isinstance(N_in, list) is True:
             for i in N_in:
-                if isinstance(i, float) is False and isinstance(i, int) is False:
+                if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                     raise Exception('Error. Some elements in N_in are neither floats nor integers.')
         elif isinstance(N_in, np.ndarray) is True:
             for i in N_in:
@@ -1333,7 +1340,7 @@ Computation of the stress state in a point of the laminate under given external 
             raise Exception('Error. The input N_in must be either a list or a numpy array.')
         if isinstance(M_in, list) is True:
             for i in M_in:
-                if isinstance(i, float) is False and isinstance(i, int) is False:
+                if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                     raise Exception('Error. Some elements in M_in are neither floats nor integers.')
         elif isinstance(M_in, np.ndarray) is True:
             for i in M_in:
@@ -1349,7 +1356,7 @@ Computation of the stress state in a point of the laminate under given external 
             calc_shear = True
             if isinstance(V_in, list) is True:
                 for i in V_in:
-                    if isinstance(i, float) is False and isinstance(i, int) is False:
+                    if isinstance(i, float) is False and isinstance(i, int) is False or isinstance(i, bool) is True:
                         raise Exception('Error. Some elements in V_in are neither floats nor integers.')
             elif isinstance(V_in, np.ndarray) is True:
                 for i in V_in:
@@ -1364,13 +1371,13 @@ Computation of the stress state in a point of the laminate under given external 
             calc_shear = False
             if V_in != 'None':
                 raise Exception('Error. The input V_in must be either a list or a numpy array.') 
-        if isinstance(cntrl_external_actions, int) is False:
+        if isinstance(cntrl_external_actions, int) is False or isinstance(cntrl_external_actions, bool) is True:
             raise Exception('Error. The variable cntrl_external_actions must be an integer.')
         if cntrl_external_actions != 0 and cntrl_external_actions != 1 and cntrl_external_actions != 2 and cntrl_external_actions != 3:
             raise Exception('Error. The variable "cntrl_external_actions" must be either equal to 0, 1, 2 or 3.')
-        if isinstance(T_in, float) is False and isinstance(T_in, int) is False:
+        if isinstance(T_in, float) is False and isinstance(T_in, int) is False or isinstance(T_in, bool) is True:
             raise Exception('Error. The variable T is neither a float nor an integer.')
-        if isinstance(m_in, float) is False and isinstance(m_in, int) is False:
+        if isinstance(m_in, float) is False and isinstance(m_in, int) is False or isinstance(m_in, bool) is True:
             raise Exception('Error. The variable m is neither a float nor an integer.')
         # exctraction of the stresses (saved as class properties)
         if cntrl_external_actions == 0: 
@@ -1452,6 +1459,7 @@ Computation of the stress state in a point of the laminate under given external 
         self.def_out_percent = def_temp * 100
 
         if print is True: ## new
+            direction = ['x', 'y', 'xy']
 
             # loop over the three directions (sigma1, sigma2, and shear)
             for i in range(3) :
@@ -1462,21 +1470,29 @@ Computation of the stress state in a point of the laminate under given external 
                 fig, ax = plt.subplots(1, 2)
                 if title != 'None':
                     fig.suptitle(title, fontsize = font_title)
-                ax[0].axhline(0, color = 'red')
-                ax[1].axhline(0, color = 'red')
+                ax[0].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
+                ax[1].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
 
                 for kk in range(len(self.stackup)):
                     # horizontal lines to indicate the plies  
-                    ax[0].axhline(ply_top_coord[kk], color = 'red')
-                    ax[1].axhline(ply_top_coord[kk], color = 'red')
+                    ax[0].axhline(ply_top_coord[kk], color = 'black',  linestyle='--', linewidth='.7')
+                    ax[1].axhline(ply_top_coord[kk], color = 'black',  linestyle='--', linewidth='.7')
                     #x_coord0 = min(deformation) - max(deformation) / 100
                     #x_coord1 = min(sigma[:, i]) - max(sigma[:, i]) / 100
 
                 # plots 
                 ax[1].plot(sigma[:, i], zed)
-                ax[1].set_title('sigma' + str(i + 1), fontsize = font1) 
+                if i == 0 or i == 1:
+                    ax[1].set_title('$\sigma_{' + direction[i] + '}$', fontsize = font1) 
+                else:
+                    ax[1].set_title('$\\tau_{' + direction[i] + '}$', fontsize = font1) 
+
                 ax[0].plot(deformation_precent, zed)
-                ax[0].set_title('epsilon' + str(i + 1), fontsize = font1)
+                if i == 0 or i == 1:
+                    ax[0].set_title('$\epsilon_{' + direction[i]  + '}$', fontsize = font1)
+                else:
+                    ax[0].set_title('$\gamma_{' + direction[i]  + '}$', fontsize = font1)
+
                 ax[1].set_xlabel('Stress [MPa]', fontsize = font2)
                 #ax[1].set_ylabel('z [mm]')
                 ax[0].set_xlabel('Deformation [%]', fontsize = font2)
@@ -1593,8 +1609,8 @@ Computation of the stress state in a point of the laminate under given external 
                 fig, ax = plt.subplots(1, 2)
                 if title != 'None':
                     fig.suptitle(title, fontsize = font_title)
-                ax[0].axhline(0, color = 'red')
-                ax[1].axhline(0, color = 'red')
+                ax[0].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
+                ax[1].axhline(0, color = 'black',  linestyle='--', linewidth='.7')
 
                 # loop over the plies  
                 for j in range(len(self.stackup)) :
@@ -1602,18 +1618,18 @@ Computation of the stress state in a point of the laminate under given external 
                     # top abscissa of each ply
                     ply_top_coord = sum(self.thickness_vector[:j + 1]) 
                     # horizontal lines to indicate the plies  
-                    ax[0].axhline(ply_top_coord, color = 'red')
-                    ax[1].axhline(ply_top_coord, color = 'red')
+                    ax[0].axhline(ply_top_coord, color = 'black',  linestyle='--', linewidth='.7')
+                    ax[1].axhline(ply_top_coord, color = 'black',  linestyle='--', linewidth='.7')
 
                 gamma_precent = gamma_out[:, i] * 100
 
                 # plots 
                 if i == 0:
-                    ax[1].set_title('tau xz', fontsize = font1) 
-                    ax[0].set_title('gamma xz', fontsize = font1)
+                    ax[1].set_title('$\\tau_{xz}$', fontsize = font1) 
+                    ax[0].set_title('$\gamma_{xz}$', fontsize = font1)
                 elif i == 1:
-                    ax[1].set_title('tau yz', fontsize = font1) 
-                    ax[0].set_title('gamma yz', fontsize = font1)
+                    ax[1].set_title('$\\tau_{yz}$', fontsize = font1) 
+                    ax[0].set_title('$\gamma_{yz}$', fontsize = font1)
                 ax[1].plot(tau[:, i], zed)
                 ax[0].plot(gamma_precent, zed)
                 ax[1].set_xlabel('Stress [MPa]', fontsize = font2)
@@ -1684,8 +1700,8 @@ Computation of the stress state in a point of the laminate under given external 
                         # accessible only if print is "True"
     # perform the FPF structural verification of the laminate
     def FPF(self, *varargs:list[list or np.ndarray], N_in:list or np.array, M_in:list or np.array, \
-        print_stress_state:bool = False, V_in:str or np.array='None', criteria:str='TsaiWu', F12:float or int="-.5/FxtFxcFytFyc_max**2", \
-            print_margins:bool = False, cntrl_external_actions:int = 0, T_in:int or float = 0, m_in:int or float = 0):
+        print_stress_state:bool=False, V_in:str or np.array='None', criteria:str='TsaiWu', F12:float or int="-.5/(FxtFxcFytFyc)**.5", \
+            print_margins:bool=False, cntrl_external_actions:int=0, T_in:int or float=0, m_in:int or float=0, hide_text:bool=False):
         '''
 # DESCRIPTION:
 this method is used verify the stackup and to identify the first failing ply in the laminate. 
@@ -1787,7 +1803,7 @@ this method is used verify the stackup and to identify the first failing ply in 
         else:
             if V_in != 'None':
                 raise Exception('Error. The input V_in must be either a list or a numpy array.')       
-        if F12 != "-.5/FxtFxcFytFyc_max**2":
+        if F12 != "-.5/(FxtFxcFytFyc)**.5":
             if isinstance(F12, float) is False and isinstance(F12, int) is False:
                 raise Exception('Error. The input F12 must be either a float or an integer.')
         if isinstance(print_margins, bool) is False:
@@ -1809,20 +1825,22 @@ this method is used verify the stackup and to identify the first failing ply in 
             print_stress_state2 = False
             cntrl_shear = False
         
-        if criteria == 'TsaiWu' or criteria == 'MaxStress':
+        if criteria == 'TsaiWu' or criteria == 'MaxStress' :
             # internal method which check, extract and store the plies' max strenght data
-            self.__add_max_strenght_properties(varargs[0], cntrl_shear=cntrl_shear)
+            self.__add_max_strenght_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
-            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            if hide_text is False:
+                print('\033[35m', 'Input strenghts are assumed to be provided in MPa', '\033[37m',' ')
+                print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+                print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
         else:
             # internal method which check, extract and store the plies' max strain data
-            self.__add_max_strain_properties(varargs[0], cntrl_shear=cntrl_shear)
+            self.__add_max_strain_properties(varargs, cntrl_shear=cntrl_shear)
             # user warnings
-            print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
-            print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
-            print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
+            if hide_text is False:
+                print('\033[35m', 'Input strains are assumed to be provided in mm/mm', '\033[37m',' ')
+                print('\033[35m', 'N_in is assumed to be provided in N/mm', '\033[37m',' ')
+                print('\033[35m', 'M_in is assumed to be provided in N', '\033[37m',' ')
 
         self.criteria = criteria
 
@@ -1916,21 +1934,24 @@ this method is used verify the stackup and to identify the first failing ply in 
             # same operation for the top
             check_top = np.where(self.margin_top <= 0)
             # if there are such values
-            print(' ')
-            if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
-                # for each of those plies display the following warning
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
-                        ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')          
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
-                        ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
-
-            if print_margins is True:
+            if hide_text is False:
                 print(' ')
-                print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')
+                if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
+                    # for each of those plies display the following warning
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
+                            ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')          
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
+                            ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum stress criteria', '\033[37m',' ')
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+
+            # if print_margins is True:
+            #     print(' ')
+            #     print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')
+            if print_margins is True:
+                self.print_margins()
         ###########################################################
         # Maximum strain criteria
         if criteria == 'MaxStrain':
@@ -2004,21 +2025,24 @@ this method is used verify the stackup and to identify the first failing ply in 
             # same operation for the top
             check_top = np.where(self.margin_top <= 0)
             # if there are such values
-            print(' ')
-            if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
-                # for each of those plies display the following warning
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
-                        ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')          
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
-                        ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
-
-            if print_margins is True:
+            if hide_text is False:
                 print(' ')
-                print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')   
+                if len(np.where(self.margin_bot < 0)[0]) != 0 or len(np.where(self.margin_top < 0)[0]) != 0:
+                    # for each of those plies display the following warning
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + \
+                            ' along the ' + direction[check_bot[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')          
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + \
+                            ' along the ' + direction[check_top[1][i]] + ' direction ' + 'according to the Maximum strain criteria', '\033[37m',' ')
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+
+            # if print_margins is True:
+            #     print(' ')
+            #     print('\033[33m', 'The option "print_margins" is available only for the TsaiWu FPF.')   
+            if print_margins is True:
+                self.print_margins()
         ###########################################################
         # Tsai-Wu criteria
         if criteria == 'TsaiWu':
@@ -2059,7 +2083,7 @@ this method is used verify the stackup and to identify the first failing ply in 
                 if cntrl_shear is True:
                     F44 = 1 / (S23) ** 2
                     F55 = 1 / (S13) ** 2
-                if F12 != "-.5/FxtFxcFytFyc_max**2":
+                if F12 != "-.5/(FxtFxcFytFyc)**.5":
                     F12 = F12
                 else:
                     # F12 = -.5 / Xt ** 2
@@ -2146,21 +2170,22 @@ this method is used verify the stackup and to identify the first failing ply in 
             check_top = np.where(self.margin_top < 0)
             check_bot = np.where(self.margin_bot < 0)
 
-            # if any of the top plies fails display a message  
-            print(' ')
-            if len(np.where(self.margin_top < 0)[0]) != 0 or len(np.where(self.margin_bot < 0)[0]) != 0:
-                for i in range (int(len(check_top[0]))):
-                    print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
-            # if any of the bot plies fails display a message  
-                for i in range (int(len(check_bot[0]))):
-                    print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
-            # if none of the plies fails display a message  
-            else: 
-                print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
+            # if any of the top plies fails display a message              
+            if hide_text is False:
+                print(' ')
+                if len(np.where(self.margin_top < 0)[0]) != 0 or len(np.where(self.margin_bot < 0)[0]) != 0:
+                    for i in range (int(len(check_top[0]))):
+                        print('\033[31m', 'Failure expected on the top side of ply no. ' + str(check_top[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
+                # if any of the bot plies fails display a message  
+                    for i in range (int(len(check_bot[0]))):
+                        print('\033[31m', 'Failure expected on the bottom side of ply no. ' + str(check_bot[0][i] + 1) + ' according to the Tsai-Wu criteria', '\033[37m',' ')
+                # if none of the plies fails display a message  
+                else: 
+                    print('\033[32m', 'No failure expected in the analysed laminate', '\033[37m', ' ')
 
             # print margins or not depending on the optional control variable
             if print_margins is True:
-                self.print_margins_TsaiWu()
+                self.print_margins()
     # print the margins from a Tsai Wu verification (FPF required)
     def print_margins(self):
         '''
