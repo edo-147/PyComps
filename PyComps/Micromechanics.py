@@ -43,7 +43,7 @@ Initialization of the class "ply" creating a composite layer from its constituen
     -   Class object with all the mechanical properties (E_i, n_ij, G_ij with i,j = 1, 2, 3 with i != j), and the other properties. In such a way that "output_name".properties returns the specific ply property
 
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
@@ -155,7 +155,7 @@ ROM method computes ply equivalent properties following the Rule-Of-Mixtures app
 # OUTPUTS: 
     - None
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
@@ -210,7 +210,7 @@ Halphin_Tsai method computes ply equivalent properties following the Halphin-Tsa
     - None
 
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
@@ -288,7 +288,7 @@ Following the Periodic Microstructure Model method, the method computes ply equi
     - None
 
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
@@ -369,7 +369,7 @@ Print ply properties
     - None
 
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31
@@ -417,7 +417,7 @@ Compute the error percent between the computed ply properties and those from an 
     - None
 
 # Example:
-    import PyComp as comp
+    import PyComps as comp
     fiber_props = [513, .3, 1910]
     fiber_name = 'M55J/Toray'
     fiber_mass_frac = 1 - .31

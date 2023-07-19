@@ -1234,7 +1234,7 @@ this method is used to print the assembled stiffeness matrix
         -   None: values are printed
 
     # Example:
-        import PyComp as comp
+        import PyComps as comp
         ply_name = 'ANSYS Epoxy Carbon Woven (230 GPa) Prepreg'
         ply_mech_props = [61.34, 61.34, 6.9, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1420, .275]
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
