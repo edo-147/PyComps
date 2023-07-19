@@ -1,4 +1,4 @@
-PyComp 
+PyComps 
 ==================
 Easy calculation of composite properties
 
@@ -40,6 +40,6 @@ Download the package folder, append the link to your "sys" and import PyComp:
 
     import sys
     sys.path.append(<folder_path>)
-    import PyComp as comp
+    import PyComps as comp
 
 Refer to the documentation folder or contact the author for more information on package usage.

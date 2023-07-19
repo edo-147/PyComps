@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 import sys, os 
-my_path = os.path.dirname(os.path.abspath("PyComp"))
+my_path = os.path.dirname(os.path.abspath("PyComps"))
 sys.path.append(my_path)
-import PyComp as comp
+import PyComps as comp
 
 
 class TestMicromech(unittest.TestCase):

@@ -1,4 +1,4 @@
-PyComp - easy calculation of composite properties
+PyComps - easy calculation of composite properties
 ---------------------------------------------
 
 - calculation of composite stiffness matrix and equivalent stiffness properties
@@ -14,7 +14,7 @@ Download the package folder, append the link to your "sys" and import PyComp:
 
     import sys
     sys.path.append(<folder_path>)
-    import PyComp as comp
+    import PyComps as comp
 
 LaminateCalculator.py
 ---------------------------------------------
@@ -23,7 +23,7 @@ LaminateCalculator.py
 
 .. code-block:: python
 
-    import PyComp as comp
+    import PyComps as comp
     ply_name = 'Epoxy Carbon Woven (230 GPa) Prepreg'
     ply_mech_props = [60, 60, 7, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1450, .275]
     ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
@@ -34,7 +34,7 @@ LaminateCalculator.py
 
 .. code-block:: python
 
-    import PyComp as comp
+    import PyComps as comp
     ply_name = 'Epoxy Carbon Woven'
     ply_mech_props = [60, 60, 7, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1450, .275]
     ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
@@ -46,7 +46,7 @@ LaminateCalculator.py
 
 .. code-block:: python
 
-    import PyComp as comp
+    import PyComps as comp
     ply_name = 'Epoxy Carbon Woven'
     ply_mech_props = [60, 60, 7, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1450, .275]
     ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
@@ -61,7 +61,7 @@ LaminateCalculator.py
 
 .. code-block:: python
 
-    import PyComp as comp
+    import PyComps as comp
     ply_name = 'Epoxy Carbon Woven'
     ply_mech_props = [60, 60, 7, 0.04, 0.3, 0.3, 3.3, 2.7, 2.7, 1450, .275]
     ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]

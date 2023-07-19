@@ -3,7 +3,7 @@ import numpy as np
 import sys, os 
 my_path = os.path.dirname(os.path.abspath("PyComp"))
 sys.path.append(my_path)
-import PyComp as comp
+import PyComps as comp
 
 
 class TestLamCalc(unittest.TestCase):
