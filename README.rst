@@ -1,7 +1,6 @@
 PyComps 
 ==================
-Easy calculation of composite properties
-
+Toolbox for the structural analysis of composite materials. 
 
 Brief description
 ----------------------------
