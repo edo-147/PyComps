@@ -92,7 +92,7 @@ As output the code displays the requested properties (print_cntrl=True). Indepen
 If print is set to True also displays the ply by ply stress distribution for the x, y, and xy directions (xz and yz are included if print_shear is True as well).
 
 .. image:: ./epsilon-sigmax.png
-    :width  : 400
+   
 
 **Example_4: perform a Fist-Ply-Failure verification following Tsai-Wu criteria**
 
