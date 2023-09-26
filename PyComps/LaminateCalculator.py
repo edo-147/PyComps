@@ -252,8 +252,8 @@ class Laminate:
         self.Qbars = Qbars
         self.Qbars_star = Qbars_star
         self.__density_vector = dens
-        self.density_avg = np.average(self.__density_vector)
         self.thickness_vector = thick
+        self.density_avg = np.average(np.array(self.__density_vector) * np.array(self.thickness_vector))
         self.__mid_z_coord = mid_z_coord
         self.thickness = thickness
 

@@ -42,6 +42,9 @@ class TestLamCalc(unittest.TestCase):
         ply_stkup = [0, 45, 0, 45, 45, 0, 45, 0]
         laminate = comp.Laminate([ply_name, ply_mech_props, ply_stkup], mech_prop_units='GPa', hide_text=True)
 
+        ref_rho = ply_mech_props[-2]
+        self.assertEqual(np.round(laminate.density_avg, 0), ref_rho)
+
         ref_Q = np.array([[61438.3, 2457.53, 0], [2457.53, 61438.3, 0], [0, 0, 3300]])
         np.testing.assert_array_equal(np.round(laminate.Q[0], 2) - ref_Q, np.zeros((ref_Q.shape)))
 
