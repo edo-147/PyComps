@@ -253,9 +253,9 @@ class Laminate:
         self.Qbars_star = Qbars_star
         self.__density_vector = dens
         self.thickness_vector = thick
-        self.density_avg = np.average(np.array(self.__density_vector) * np.array(self.thickness_vector))
-        self.__mid_z_coord = mid_z_coord
         self.thickness = thickness
+        self.density_avg = np.sum(np.array(self.__density_vector) * np.array(self.thickness_vector)) / self.thickness
+        self.__mid_z_coord = mid_z_coord
 
         self.__compute_laminate_stiffeness_matrices()
 # Service class method (internal start with "__")
